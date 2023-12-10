@@ -122,7 +122,7 @@ The following diagram is a representation of the hardware components in our proj
 ![image](https://github.com/Joel-Mendez0/SunnySideUpgrades/assets/113056408/b1c0d970-a003-4d01-8f63-3b89ba3d4a90)
 ### Level 1 Decomposition
 ![image](https://github.com/Joel-Mendez0/SunnySideUpgrades/assets/113056408/e42682ee-ef36-4367-8e21-7d6c9cac1300)
-### Go/No Go Milestone
+### EECE 410 Go/No Go Milestone
 The timeline of this project spans two college semesters, providing our team with two clear sections for developing this project. We will be dividing this project into a hardware portion and a software portion. For the first semester, we aim to have our schematics complete and our final hardware determined. Using hardware as the basis for our project gives us a structure for moving forward. Especially because in our second semester, is when we will focus on incorporating the software. With the hardware designed, we will be able to assess how the software should go about moving the panel. A completed physical build will allow us to properly test the software, and see how each piece of code affects the final movement of the panel. 
 ### Testing Plan
 	Testing for this project will be done as we move forward throughout its development. This will ensure that every component works properly before we move on to the next. As a result, the final product will have been already troubleshooted. Listed below are the steps for our testing plan:

@@ -135,6 +135,7 @@ Debug light-tracking software.
 Import the programs to the microcontroller.
 Test all angles of the solar panel to account for every scenario.
 Several iterations for this project were performed to find the best configuration for our project and are listed below:
+
 ![image](https://github.com/Joel-Mendez0/SunnySideUpgrades/assets/113056408/be9a5733-f992-455b-aaa3-ede29d590003)
 ### Cost Estimation
 ![image](https://github.com/Joel-Mendez0/SunnySideUpgrades/assets/113056408/731dc522-664c-44fe-8b9e-ff63339242b6)

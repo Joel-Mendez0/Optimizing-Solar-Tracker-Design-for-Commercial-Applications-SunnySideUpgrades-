@@ -118,6 +118,7 @@ The following diagram is a representation of the hardware components in our proj
 ![image](https://github.com/Joel-Mendez0/SunnySideUpgrades/assets/113056408/1c5da174-d4ef-495a-9de2-def49a4a0d9f)
 ### Software Diagram (Web Application)
 ![image](https://github.com/Joel-Mendez0/SunnySideUpgrades/assets/113056408/0a2e24be-a8c9-4b99-be5b-a63d60394e65)
+### Functional Decomposition
 ### Level 0 Decomposition
 ![image](https://github.com/Joel-Mendez0/SunnySideUpgrades/assets/113056408/b1c0d970-a003-4d01-8f63-3b89ba3d4a90)
 ### Level 1 Decomposition

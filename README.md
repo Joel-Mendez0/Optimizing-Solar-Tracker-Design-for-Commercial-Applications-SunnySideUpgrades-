@@ -116,17 +116,25 @@ The case above works for a non-tilting panel. Which is helpful but in our case s
 
 ### Physical Diagram
 The following diagram is a representation of the hardware components in our project. The schematic displayed on the left shows the pin input/output of the esp32 microcontroller and the connections to our motors. The picture on the right, shows the breadboard implementation of the schematic.
-![image](https://github.com/Joel-Mendez0/SunnySideUpgrades/assets/113056408/8cd82104-70f5-42dc-86e5-fbfaa238a800)
-### Software Diagram (Solar Tracker)
-![image](https://github.com/Joel-Mendez0/SunnySideUpgrades/assets/113056408/1c5da174-d4ef-495a-9de2-def49a4a0d9f)
-### Software Diagram (Web Application)
-![image](https://github.com/Joel-Mendez0/SunnySideUpgrades/assets/113056408/0a2e24be-a8c9-4b99-be5b-a63d60394e65)
-### Functional Decomposition
-- [Level 0](#functional-decomposition-level-0)
-  ![Level 0](https://github.com/Joel-Mendez0/SunnySideUpgrades/assets/113056408/b1c0d970-a003-4d01-8f63-3b89ba3d4a90)
 
-- [Level 1](#functional-decomposition-level-1)
-  ![Level 1](https://github.com/Joel-Mendez0/SunnySideUpgrades/assets/113056408/e42682ee-ef36-4367-8e21-7d6c9cac1300)
+![image](https://github.com/Joel-Mendez0/SunnySideUpgrades/assets/113056408/8cd82104-70f5-42dc-86e5-fbfaa238a800)
+
+### Software Diagram (Solar Tracker)
+
+![image](https://github.com/Joel-Mendez0/SunnySideUpgrades/assets/113056408/1c5da174-d4ef-495a-9de2-def49a4a0d9f)
+
+### Software Diagram (Web Application)
+
+![image](https://github.com/Joel-Mendez0/SunnySideUpgrades/assets/113056408/0a2e24be-a8c9-4b99-be5b-a63d60394e65)
+
+### Functional Decomposition
+-Level 0
+
+![image](https://github.com/Joel-Mendez0/SunnySideUpgrades/assets/113056408/b1c0d970-a003-4d01-8f63-3b89ba3d4a90)
+
+-Level 1
+
+![image](https://github.com/Joel-Mendez0/SunnySideUpgrades/assets/113056408/e42682ee-ef36-4367-8e21-7d6c9cac1300)
 ### EECE 410 Go/No Go Milestone
 The timeline of this project spans two college semesters, providing our team with two clear sections for developing this project. We will be dividing this project into a hardware portion and a software portion. For the first semester, we aim to have our schematics complete and our final hardware determined. Using hardware as the basis for our project gives us a structure for moving forward. Especially because in our second semester, is when we will focus on incorporating the software. With the hardware designed, we will be able to assess how the software should go about moving the panel. A completed physical build will allow us to properly test the software, and see how each piece of code affects the final movement of the panel. 
 ### Testing Plan

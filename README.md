@@ -106,9 +106,12 @@ The following diagram is a House of Quality, which serves as a visual representa
 The goal is to construct solar tracking panels that are not only highly efficient but also cost-effective, making them an ideal choice for large-scale installations, including solar farms and expansive structures like warehouses. We recognize the tremendous potential of solar energy in meeting the rising global demand for sustainable power. By focusing on cost-efficiency, we aim to shatter the financial barriers that have limited the widespread adoption of solar tracking technology. The goal is to introduce this to solar farms and industrial facilities to harness solar power more effectively, thereby reducing their reliance on conventional energy sources and significantly reducing their environmental damage. 
 ### Related Theory
 As one can expect there can be a lot of math that can go behind creating a tilting solar panel. To begin with we can start with the basics. When installing a solar panel, you can install it at an angle to help optimize the power consumption. As we can see in the figure below we can see the equations to help calculate the best tilt angle for any given panel at a certain location. [4]
+
 ![image](https://github.com/Joel-Mendez0/SunnySideUpgrades/assets/113056408/106d272b-45cf-4ad6-bbce-f13278ccb1ba)
 
+
 The case above works for a non-tilting panel. Which is helpful but in our case since we want to adjust the system instantaneously a lot more equations have to be involved. As we can see in the figure below various variables and angles are involved in this project. We need the angle of the sun in rest to the panel, the angle of the panel with respect to the ground, etc. Below the panel diagram you will find the corresponding equations needed to solve for the optimal tilting angle.[4] As it can be seen it is a very elaborate set of equations that can cause various sets of errors in our project and to avoid any issues we will use a camera module.
+
 ![image](https://github.com/Joel-Mendez0/SunnySideUpgrades/assets/113056408/56ef685a-492d-441b-a7a5-3954c1b6ba84)
 
 ### Physical Diagram

@@ -109,6 +109,8 @@ Our solar-tracking system will have a housing enclosure at the base, protecting 
 
 While solar-tracking technology has been around for years, it is not properly optimized for commercial use. In 2020, only 3.5% of commercial buildings in the U.S. had solar panels on their roofs, even though commercial solar has the potential to hold up to 145 Gigawatts. [2] To create a design that is more marketable to the commercial market, we will have three main objectives. We will use tracking to improve efficiency, lower cost, and lower weight from current large scale solar-trackers.
 
+![image](https://github.com/Joel-Mendez0/SunnySideUpgrades/assets/113056408/8a5e68d4-a96e-4ec2-8029-67f95a27f561)
+
  ### Project Summary
 The goal is to construct solar tracking panels that are not only highly efficient but also cost-effective, making them an ideal choice for large-scale installations, including solar farms and expansive structures like warehouses. We recognize the tremendous potential of solar energy in meeting the rising global demand for sustainable power. By focusing on cost-efficiency, we aim to shatter the financial barriers that have limited the widespread adoption of solar tracking technology. The goal is to introduce this to solar farms and industrial facilities to harness solar power more effectively, thereby reducing their reliance on conventional energy sources and significantly reducing their environmental damage. 
 ### Related Theory

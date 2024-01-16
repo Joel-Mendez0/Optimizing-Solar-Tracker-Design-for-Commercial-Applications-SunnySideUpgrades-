@@ -1,24 +1,20 @@
 import cv2
 import numpy as np
-import threading
 import time
 
-class WebcamThread(threading.Thread):
+class WebcamCapture:
     def __init__(self):
-        threading.Thread.__init__(self)
         self.cap = cv2.VideoCapture(0)
-        self.cap.set(cv2.CAP_PROP_FPS, 30)  # Set FPS to 30
-        self.frame = None
-        self.running = True
+        self.cap.set(cv2.CAP_PROP_FPS, 24)  # Set FPS to 24
 
-    def run(self):
-        while self.running:
-            ret, frame = self.cap.read()
-            if ret:
-                self.frame = frame
+    def capture_frame(self):
+        ret, frame = self.cap.read()
+        if ret:
+            return frame
+        else:
+            return None
 
-    def stop(self):
-        self.running = False
+    def release(self):
         self.cap.release()
 
 def find_brightest_area(frame):
@@ -37,46 +33,49 @@ def find_brightest_area(frame):
     # Find the contour with the largest area (brightest region)
     max_contour = max(contours, key=cv2.contourArea)
 
-    # Create a mask to highlight the brightest area
-    mask = np.zeros_like(gray)
-    cv2.drawContours(mask, [max_contour], 0, 255, -1)
+    # Check if the contour has a non-zero area
+    if cv2.contourArea(max_contour) > 0:
+        # Calculate the middle coordinates of the highlighted region
+        M = cv2.moments(max_contour)
+        middle_x = int(M["m10"] / M["m00"])
+        middle_y = int(M["m01"] / M["m00"])
 
-    # Bitwise AND the original frame with the mask
-    result = cv2.bitwise_and(frame, frame, mask=mask)
+        # Draw bounding box around the region
+        x, y, w, h = cv2.boundingRect(max_contour)
+        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
-    return result
+        return (middle_x, middle_y)
+    else:
+        return None
+
+def calculate_motor_angles(middle_x, middle_y):
+    motor_1_angle = 0
+    motor_2_angle = 0
+    return motor_1_angle, motor_2_angle
 
 if __name__ == "__main__":
-    webcam_thread = WebcamThread()
-    webcam_thread.start()
-
     try:
+        webcam_capture = WebcamCapture()
+
         while True:
-            frame = webcam_thread.frame
+            frame = webcam_capture.capture_frame()
 
             if frame is not None:
-                # Find the brightest area in the current frame
-                result = find_brightest_area(frame)
+                middle_coordinates = find_brightest_area(frame)
 
-                if result is not None:
-                    # Display the original frame and the result
-                    cv2.imshow('Original Frame', frame)
-                    cv2.imshow('Brightest Area', result)
+                if middle_coordinates is not None:
+                    print(f"Middle Coordinates: {middle_coordinates}")
 
-            # Check for key events
-            key = cv2.waitKey(1)
-            if key & 0xFF == ord('q'):
-                break
+                # Show the frame
+                cv2.imshow('Frame', frame)
 
-            # Wait for 1 millisecond
-            time.sleep(0.001)
+                # Wait for a key press and close the window if 'q' is pressed
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
 
     except Exception as e:
         print(f"Error: {e}")
 
     finally:
-        webcam_thread.stop()
-        webcam_thread.join()
-
-        # Close windows
+        webcam_capture.release()
         cv2.destroyAllWindows()

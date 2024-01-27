@@ -34,10 +34,8 @@ void setup() {
 }
 
 void loop() {
-  // Your main code here
 
-  // Capture RGB image (replace this with your actual image capture code)
-  // For simplicity, a placeholder is used here
+  // Capture RGB image
   for (int i = 0; i < width * height * 3; i++) {
     rgbImage[i] = random(256);
   }
@@ -83,10 +81,7 @@ void loop() {
       image.getBoundingBox(maxContourIndex, x, y, w, h);
       // Now, you can use x, y, w, and h to draw a rectangle on your display
 
-      // Do something with the middle coordinates (middle_x, middle_y)
       calculate_angles(int middle_x, int middle_y);
-      
-      // Code to Write the Angles to the panel
       
     }
   }

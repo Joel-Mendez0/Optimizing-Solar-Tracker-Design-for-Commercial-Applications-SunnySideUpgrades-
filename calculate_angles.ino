@@ -1,89 +1,260 @@
-#include <Arduino.h>
-#include <ImageProcessing.h>
+#include <Wire.h>
+#include <SPI.h>
+#include <WiFi.h>
+#include <DNSServer.h>
+#include <WebServer.h>
+#include <ArduCAM.h>
+//#include "SSD1306.h" // alias for `#include "SSD1306Wire.h"`
+const int CS = 5;
 
-// Define image dimensions
-const int width = 320;
-const int height = 240;
+// Replace with your network credentials
+const char* ssid = "Fios-JR9dw";
+const char* password = "dross87both74age";
 
-// Image arrays
-byte rgbImage[width * height * 3];
-byte grayscaleImage[width * height];
-byte thresholdedImage[width * height];
+WebServer server(80);
+//SSD1306  display(0x3c, 5, 4);
+ArduCAM myCAM(OV2640, CS);
 
-void convertToGrayscale(byte* rgbImage, byte* grayscaleImage, int width, int height) {
-  for (int i = 0; i < width * height * 3; i += 3) {
-    // Calculate the average of red, green, and blue values
-    grayscaleImage[i / 3] = (rgbImage[i] + rgbImage[i + 1] + rgbImage[i + 2]) / 3;
-  }
+static const size_t bufferSize = 4096;
+static uint8_t buffer[bufferSize] = {0xFF};
+uint8_t temp = 0, temp_last = 0;
+int i = 0;
+bool is_header = false;
+
+void start_capture(){
+  myCAM.clear_fifo_flag();
+  myCAM.start_capture();
 }
 
-void applyThreshold(byte* grayscaleImage, byte* thresholdedImage, int width, int height, byte threshold) {
-  for (int i = 0; i < width * height; i++) {
-    // Apply threshold
-    thresholdedImage[i] = (grayscaleImage[i] > threshold) ? 255 : 0;
-  }
+void camCapture(ArduCAM myCAM){
+WiFiClient client = server.client();
+uint32_t len  = myCAM.read_fifo_length();
+if (len >= MAX_FIFO_SIZE) //8M
+{
+  Serial.println(F("Over size."));
+}
+if (len == 0 ) //0 kb
+{
+  Serial.println(F("Size is 0."));
+}
+myCAM.CS_LOW();
+myCAM.set_fifo_burst(); 
+if (!client.connected()) return;
+String response = "HTTP/1.1 200 OK\r\n";
+response += "Content-Type: image/jpeg\r\n";
+response += "Content-len: " + String(len) + "\r\n\r\n";
+server.sendContent(response);
+i = 0;
+while ( len-- )
+{
+temp_last = temp;
+temp =  SPI.transfer(0x00);
+//Read JPEG data from FIFO
+if ( (temp == 0xD9) && (temp_last == 0xFF) ) //If find the end ,break while,
+{
+buffer[i++] = temp;  //save the last  0XD9     
+//Write the remain bytes in the buffer
+if (!client.connected()) break;
+client.write(&buffer[0], i);
+is_header = false;
+i = 0;
+myCAM.CS_HIGH();
+break; 
+}  
+if (is_header == true)
+{ 
+//Write image data to buffer if not full
+if (i < bufferSize)
+buffer[i++] = temp;
+else
+{
+//Write bufferSize bytes image data to file
+if (!client.connected()) break;
+client.write(&buffer[0], bufferSize);
+i = 0;
+buffer[i++] = temp;
+}        
+}
+else if ((temp == 0xD8) & (temp_last == 0xFF))
+{
+is_header = true;
+buffer[i++] = temp_last;
+buffer[i++] = temp;   
+} 
+} 
 }
 
-void calculate_angles(int middle_x, int middle_y){
-   angle_1 = 0;
-   angle_2 = 0;
+void serverCapture(){
+  delay(1000);
+start_capture();
+Serial.println(F("CAM Capturing"));
+
+int total_time = 0;
+
+total_time = millis();
+while (!myCAM.get_bit(ARDUCHIP_TRIG, CAP_DONE_MASK));
+total_time = millis() - total_time;
+Serial.print(F("capture total_time used (in miliseconds):"));
+Serial.println(total_time, DEC);
+
+total_time = 0;
+
+Serial.println(F("CAM Capture Done."));
+total_time = millis();
+camCapture(myCAM);
+total_time = millis() - total_time;
+Serial.print(F("send total_time used (in miliseconds):"));
+Serial.println(total_time, DEC);
+Serial.println(F("CAM send Done."));
+}
+
+void serverStream(){
+WiFiClient client = server.client();
+
+String response = "HTTP/1.1 200 OK\r\n";
+response += "Content-Type: multipart/x-mixed-replace; boundary=frame\r\n\r\n";
+server.sendContent(response);
+
+while (1){
+start_capture();
+while (!myCAM.get_bit(ARDUCHIP_TRIG, CAP_DONE_MASK));
+size_t len = myCAM.read_fifo_length();
+if (len >= MAX_FIFO_SIZE) //8M
+{
+Serial.println(F("Over size."));
+continue;
+}
+if (len == 0 ) //0 kb
+{
+Serial.println(F("Size is 0."));
+continue;
+} 
+myCAM.CS_LOW();
+myCAM.set_fifo_burst();
+if (!client.connected()) break;
+response = "--frame\r\n";
+response += "Content-Type: image/jpeg\r\n\r\n";
+server.sendContent(response); 
+while ( len-- )
+{
+temp_last = temp;
+temp =  SPI.transfer(0x00);
+
+//Read JPEG data from FIFO
+if ( (temp == 0xD9) && (temp_last == 0xFF) ) //If find the end ,break while,
+{
+buffer[i++] = temp;  //save the last  0XD9     
+//Write the remain bytes in the buffer
+myCAM.CS_HIGH();; 
+if (!client.connected()) break;
+client.write(&buffer[0], i);
+is_header = false;
+i = 0;
+}  
+if (is_header == true)
+{ 
+//Write image data to buffer if not full
+if (i < bufferSize)
+buffer[i++] = temp;
+else
+{
+//Write bufferSize bytes image data to file
+myCAM.CS_HIGH(); 
+if (!client.connected()) break;
+client.write(&buffer[0], bufferSize);
+i = 0;
+buffer[i++] = temp;
+myCAM.CS_LOW();
+myCAM.set_fifo_burst();
+}        
+}
+else if ((temp == 0xD8) & (temp_last == 0xFF))
+{
+is_header = true;
+buffer[i++] = temp_last;
+buffer[i++] = temp;   
+} 
+}
+if (!client.connected()) break;
+}
+}
+
+void handleNotFound(){
+String message = "Server is running!\n\n";
+message += "URI: ";
+message += server.uri();
+message += "\nMethod: ";
+message += (server.method() == HTTP_GET)?"GET":"POST";
+message += "\nArguments: ";
+message += server.args();
+message += "\n";
+server.send(200, "text/plain", message);
 }
 
 void setup() {
-  // Your setup code here
+uint8_t vid, pid;
+uint8_t temp;
+pinMode(CS, OUTPUT);
+
+// I2C START SDA, SCL
+Wire.begin(21, 22);
+//display.init();
+//display.flipScreenVertically();
+//display.setFont(ArialMT_Plain_10);
+Serial.begin(115200);
+
+// Initialize SPI: SCK, MISO, MOSI, SS
+SPI.begin(18, 19, 23, 5);
+SPI.setFrequency(4000000); //4MHz
+
+// Check if the ArduCAM SPI bus is OK
+myCAM.write_reg(ARDUCHIP_TEST1, 0x55);
+temp = myCAM.read_reg(ARDUCHIP_TEST1);
+if (temp != 0x55) {
+    Serial.println(F("SPI1 interface Error!"));
+    while(1);
+}
+
+//Check if the camera module type is OV2640
+myCAM.wrSensorReg8_8(0xff, 0x01);
+myCAM.rdSensorReg8_8(OV2640_CHIPID_HIGH, &vid);
+myCAM.rdSensorReg8_8(OV2640_CHIPID_LOW, &pid);
+if ((vid != 0x26 ) && (( pid != 0x41 ) || ( pid != 0x42 )))
+Serial.println(F("Can't find OV2640 module!"));
+else
+Serial.println(F("OV2640 detected."));
+
+
+//Change to JPEG capture mode and initialize the OV2640 module
+myCAM.set_format(JPEG);
+myCAM.InitCAM();
+
+myCAM.OV2640_set_JPEG_size(OV2640_640x480);
+myCAM.clear_fifo_flag();
+
+    // Connect to Wi-Fi
+    WiFi.begin(ssid, password);
+    while (WiFi.status() != WL_CONNECTED) {
+        delay(500);
+        Serial.print(".");
+    }
+    Serial.println("");
+    Serial.println("WiFi connected.");
+    Serial.print("Use this URL to connect: ");
+    Serial.print("http://");
+    Serial.print(WiFi.localIP());
+    Serial.println("/stream");
+
+    // Start the server
+    server.on("/capture", HTTP_GET, serverCapture);
+    server.on("/stream", HTTP_GET, serverStream);
+    server.onNotFound(handleNotFound);
+    server.begin();
+    Serial.println(F("Server started"));
 }
 
 void loop() {
-
-  // Capture RGB image
-  for (int i = 0; i < width * height * 3; i++) {
-    rgbImage[i] = random(256);
-  }
-
-  // Convert RGB image to grayscale
-  convertToGrayscale(rgbImage, grayscaleImage, width, height);
-
-  // Apply threshold to the grayscale image
-  byte thresholdValue = 128;  // Adjust threshold as needed
-  applyThreshold(grayscaleImage, thresholdedImage, width, height, thresholdValue);
-
-  // Assuming you have the "Arduino Image Processing Toolbox" library installed and configured
-  ImageProcessing image;
-
-  // Find contours in the binary image
-  image.setImage(thresholdedImage, width, height);
-  image.findContours();
-
-  // Get the number of contours
-  int contourCount = image.getContourCount();
-
-  if (contourCount > 0) {
-    // Find the contour with the largest area
-    int maxContourIndex = 0;
-    int maxContourArea = image.getContourArea(0);
-
-    for (int i = 1; i < contourCount; i++) {
-      int area = image.getContourArea(i);
-      if (area > maxContourArea) {
-        maxContourArea = area;
-        maxContourIndex = i;
-      }
+    if (WiFi.status() == WL_CONNECTED) {
+        server.handleClient();
     }
-
-    // Check if the contour has a non-zero area
-    if (maxContourArea > 0) {
-      // Calculate the middle coordinates of the highlighted region
-      int middle_x = image.getContourCenterX(maxContourIndex);
-      int middle_y = image.getContourCenterY(maxContourIndex);
-
-      // Draw bounding box around the region
-      int x, y, w, h;
-      image.getBoundingBox(maxContourIndex, x, y, w, h);
-      // Now, you can use x, y, w, and h to draw a rectangle on your display
-
-      calculate_angles(int middle_x, int middle_y);
-      
-    }
-  }
 }
-

@@ -4,12 +4,20 @@
 #include <DNSServer.h>
 #include <WebServer.h>
 #include <ArduCAM.h>
-//#include "SSD1306.h" // alias for `#include "SSD1306Wire.h"`
+#include <ESP32Servo.h>
+
+Servo solarServo1;
+Servo solarServo2;
+int servoPin1 = 13;
+int servoPin2 = 12;
+
+int servo1angle = 80;
+int servo2angle = 80;
 const int CS = 5;
 
 // Replace with your network credentials
-const char* ssid = "";
-const char* password = "";
+const char* ssid = "Fios-JR9dw";
+const char* password = "dross87both74age";
 
 WebServer server(80);
 //SSD1306  display(0x3c, 5, 4);
@@ -192,6 +200,11 @@ server.send(200, "text/plain", message);
 }
 
 void setup() {
+solarServo1.attach(servoPin1);
+solarServo1.write(servo1angle);
+
+solarServo2.attach(servoPin2);
+solarServo2.write(servo1angle);
 uint8_t vid, pid;
 uint8_t temp;
 pinMode(CS, OUTPUT);
@@ -257,4 +270,8 @@ void loop() {
     if (WiFi.status() == WL_CONNECTED) {
         server.handleClient();
     }
+    solarServo1.write(10);
+    solarServo2.write(10);
+
+
 }

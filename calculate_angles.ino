@@ -8,8 +8,8 @@
 const int CS = 5;
 
 // Replace with your network credentials
-const char* ssid = "Fios-JR9dw";
-const char* password = "dross87both74age";
+const char* ssid = "";
+const char* password = "";
 
 WebServer server(80);
 //SSD1306  display(0x3c, 5, 4);

@@ -19,7 +19,6 @@ const char* ssid = "";
 const char* password = "";
 
 WebServer server(80);
-//SSD1306  display(0x3c, 5, 4);
 ArduCAM myCAM(OV2640, CS);
 
 static const size_t bufferSize = 4096;
@@ -27,6 +26,45 @@ static uint8_t buffer[bufferSize] = {0xFF};
 uint8_t temp = 0, temp_last = 0;
 int i = 0;
 bool is_header = false;
+
+void handleUpdateCoordinates() {
+    if (server.hasArg("x") && server.hasArg("y")) {
+        int x = server.arg("x").toInt();
+        int y = server.arg("y").toInt();
+
+        Serial.print("Received X coordinate: ");
+        Serial.println(x);
+        Serial.print("Received Y coordinate: ");
+        Serial.println(y);
+
+        if(x < 350 && y > 100){
+          solarServo1.write(50);
+          solarServo2.write(100);
+        }
+        else if(x < 100 && y < 200){
+          solarServo1.write(120);
+          solarServo2.write(130);
+        }
+        else{
+          solarServo1.write(150);
+          solarServo2.write(150);
+        }
+
+        server.send(200, "text/plain", "Coordinates updated");
+    } else {
+        server.send(400, "text/plain", "Missing data");
+    }
+}
+
+void printBuffer() {
+  Serial.println("Buffer Data:");
+  for (int j = 0; j < bufferSize; j++) {
+    Serial.print(buffer[j]);
+    Serial.print(" ");
+  }
+  Serial.println();
+}
+
 
 void start_capture(){
   myCAM.clear_fifo_flag();
@@ -66,6 +104,7 @@ client.write(&buffer[0], i);
 is_header = false;
 i = 0;
 myCAM.CS_HIGH();
+printBuffer();
 break; 
 }  
 if (is_header == true)
@@ -210,9 +249,6 @@ pinMode(CS, OUTPUT);
 
 // I2C START SDA, SCL
 Wire.begin(21, 22);
-//display.init();
-//display.flipScreenVertically();
-//display.setFont(ArialMT_Plain_10);
 Serial.begin(115200);
 
 // Initialize SPI: SCK, MISO, MOSI, SS
@@ -256,10 +292,14 @@ myCAM.clear_fifo_flag();
     Serial.print("http://");
     Serial.print(WiFi.localIP());
     Serial.println("/stream");
+    Serial.print("http://");
+    Serial.print(WiFi.localIP());
+    Serial.println("/capture");
 
     // Start the server
     server.on("/capture", HTTP_GET, serverCapture);
     server.on("/stream", HTTP_GET, serverStream);
+    server.on("/update_coordinates", HTTP_POST, handleUpdateCoordinates);
     server.onNotFound(handleNotFound);
     server.begin();
     Serial.println(F("Server started"));
@@ -269,8 +309,4 @@ void loop() {
     if (WiFi.status() == WL_CONNECTED) {
         server.handleClient();
     }
-    solarServo1.write(10);
-    solarServo2.write(10);
-
-
 }

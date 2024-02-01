@@ -1,25 +1,24 @@
 import cv2
 import numpy as np
+import requests
 import time
 
-class WebcamCapture:
-    def __init__(self):
-        self.cap = cv2.VideoCapture(0)
-        self.cap.set(cv2.CAP_PROP_FPS, 24)  # Set FPS to 24
+ESP32_IP_ADDRESS = "IP_ADDRESS"
 
-    def capture_frame(self):
-        ret, frame = self.cap.read()
-        if ret:
-            return frame
-        else:
-            return None
+IMAGE_URL = f"http://{ESP32_IP_ADDRESS}/capture"
 
-    def release(self):
-        self.cap.release()
+def send_coordinates_to_esp32(middle_x, middle_y):
+    url = f"http://{ESP32_IP_ADDRESS}/update_coordinates"
+    data = {'x': middle_x, 'y': middle_y}
+    try:
+        response = requests.post(url, data=data)
+        print(f"Response from ESP32: {response.text}")
+    except requests.exceptions.RequestException as e:
+        print(f"Error sending data to ESP32: {e}")
 
-def find_brightest_area(frame):
-    # Convert the frame to grayscale
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+def find_brightest_area(image):
+    # Convert the image to grayscale
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
     # Find the brightest region
     _, thresh = cv2.threshold(gray, 240, 255, cv2.THRESH_BINARY)
@@ -42,40 +41,45 @@ def find_brightest_area(frame):
 
         # Draw bounding box around the region
         x, y, w, h = cv2.boundingRect(max_contour)
-        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+        cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
         return (middle_x, middle_y)
     else:
         return None
 
-def calculate_motor_angles(middle_x, middle_y):
-    motor_1_angle = 0
-    motor_2_angle = 0
-    return motor_1_angle, motor_2_angle
+def fetch_image(url):
+    response = requests.get(url)
+    if response.status_code == 200:
+        image = np.asarray(bytearray(response.content), dtype="uint8")
+        image = cv2.imdecode(image, cv2.IMREAD_COLOR)
+        return image
+    else:
+        return None
 
 if __name__ == "__main__":
     try:
-        webcam_capture = WebcamCapture()
-
         while True:
-            frame = webcam_capture.capture_frame()
+            image = fetch_image(IMAGE_URL)
 
-            if frame is not None:
-                middle_coordinates = find_brightest_area(frame)
+            if image is not None:
+                middle_coordinates = find_brightest_area(image)
 
                 if middle_coordinates is not None:
                     print(f"Middle Coordinates: {middle_coordinates}")
+                    send_coordinates_to_esp32(*middle_coordinates)
 
-                # Show the frame
-                cv2.imshow('Frame', frame)
-
-                # Wait for a key press and close the window if 'q' is pressed
+                # Show the image
+                cv2.imshow('Image', image)
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
+            else:
+                print("Error fetching image from URL")
+
+            #time.sleep(0.5)  # Delay for 0.5 seconds
 
     except Exception as e:
         print(f"Error: {e}")
 
     finally:
-        webcam_capture.release()
         cv2.destroyAllWindows()
+

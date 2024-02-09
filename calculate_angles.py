@@ -3,9 +3,21 @@ import numpy as np
 import requests
 import time
 
-ESP32_IP_ADDRESS = "IP_ADDRESS"
-
+ESP32_IP_ADDRESS = "192.168.1.22"
 IMAGE_URL = f"http://{ESP32_IP_ADDRESS}/capture"
+
+def draw_dividing_boxes(image):
+    # Define colors and thickness for visualization
+    color = (255, 0, 0) # Blue color in BGR
+    thickness = 2
+
+    # Height and width of the image
+    height, width, _ = image.shape
+
+    for i in range(1, 10):  # Vertical lines
+        cv2.line(image, (i * width // 10, 0), (i * width // 10, height), color, thickness)
+    for j in range(1, 10):  # Horizontal lines
+        cv2.line(image, (0, j * height // 10), (width, j * height // 10), color, thickness)
 
 def send_coordinates_to_esp32(middle_x, middle_y):
     url = f"http://{ESP32_IP_ADDRESS}/update_coordinates"
@@ -17,32 +29,21 @@ def send_coordinates_to_esp32(middle_x, middle_y):
         print(f"Error sending data to ESP32: {e}")
 
 def find_brightest_area(image):
-    # Convert the image to grayscale
+    # Convert the image to grayscale and find the brightest region
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-
-    # Find the brightest region
     _, thresh = cv2.threshold(gray, 240, 255, cv2.THRESH_BINARY)
-
-    # Find contours in the binary image
     contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     if not contours:
         return None
 
-    # Find the contour with the largest area (brightest region)
     max_contour = max(contours, key=cv2.contourArea)
-
-    # Check if the contour has a non-zero area
     if cv2.contourArea(max_contour) > 0:
-        # Calculate the middle coordinates of the highlighted region
         M = cv2.moments(max_contour)
         middle_x = int(M["m10"] / M["m00"])
         middle_y = int(M["m01"] / M["m00"])
-
-        # Draw bounding box around the region
         x, y, w, h = cv2.boundingRect(max_contour)
         cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
-
         return (middle_x, middle_y)
     else:
         return None
@@ -60,26 +61,24 @@ if __name__ == "__main__":
     try:
         while True:
             image = fetch_image(IMAGE_URL)
-
             if image is not None:
+                draw_dividing_boxes(image)  # Draw the dividing boxes on the image
                 middle_coordinates = find_brightest_area(image)
 
                 if middle_coordinates is not None:
                     print(f"Middle Coordinates: {middle_coordinates}")
                     send_coordinates_to_esp32(*middle_coordinates)
 
-                # Show the image
                 cv2.imshow('Image', image)
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
             else:
                 print("Error fetching image from URL")
 
-            #time.sleep(0.5)  # Delay for 0.5 seconds
+            #time.sleep(5)
 
     except Exception as e:
         print(f"Error: {e}")
 
     finally:
         cv2.destroyAllWindows()
-

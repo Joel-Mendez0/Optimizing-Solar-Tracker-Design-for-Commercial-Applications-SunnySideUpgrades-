@@ -6,17 +6,22 @@
 #include <ArduCAM.h>
 #include <ESP32Servo.h>
 
-Servo solarServo1;
-Servo solarServo2;
+Servo SolarServo1;
+Servo SolarServo2;
 int servoPin1 = 13;
 int servoPin2 = 12;
 
-int servo1angle = 80;
-int servo2angle = 80;
+int servo_y = 180;
+int servo_x = 180;
 const int CS = 5;
 
-const char* ssid = "";
-const char* password = "";
+const char* ssid = "SunnySideUpgrades_ESP32";
+const char* password = "solar_shimmey";
+
+// Configure IP addresses of the local access point
+IPAddress local_IP(192,168,1,22);
+IPAddress gateway(192,168,1,5);
+IPAddress subnet(255,255,255,0);
 
 WebServer server(80);
 ArduCAM myCAM(OV2640, CS);
@@ -37,35 +42,42 @@ void handleUpdateCoordinates() {
         Serial.print("Received Y coordinate: ");
         Serial.println(y);
 
-        if(x < 350 && y > 100){
-          solarServo1.write(50);
-          solarServo2.write(100);
-        }
-        else if(x < 100 && y < 200){
-          solarServo1.write(120);
-          solarServo2.write(130);
-        }
-        else{
-          solarServo1.write(150);
-          solarServo2.write(150);
-        }
+        // Assuming a resolution of 480x640 for the image
+        int xRegions = 10; // Number of horizontal regions
+        int yRegions = 10; // Number of vertical regions
+        int xStep = 640 / xRegions;
+        int yStep = 480 / yRegions;
+
+        // Calculate the region index
+        int regionX = x / xStep;
+        int regionY = y / yStep;
+
+        // Calculate the overall region number (0 to 99)
+        int region = regionY * xRegions + regionX;
+
+        // Print the region number to the serial monitor
+        Serial.print("Region number: ");
+        Serial.println(region);
+
+        // You'll need to define how you want to map regions to servo positions
+        // Here's an example for a simple linear mapping
+        int servo_x = map(regionX, 30, xRegions - 1, 0, 150);
+        int servo_y = map(regionY, 30, yRegions - 1, 0, 150);
+
+        Serial.print("Writing servo_x: ");
+        Serial.println(servo_x);
+        Serial.print("Writing servo_y: ");
+        Serial.println(servo_y);
+
+        // Write the servo positions
+        SolarServo1.write(servo_y);
+        SolarServo2.write(servo_x);
 
         server.send(200, "text/plain", "Coordinates updated");
     } else {
         server.send(400, "text/plain", "Missing data");
     }
 }
-
-void printBuffer() {
-  Serial.println("Buffer Data:");
-  for (int j = 0; j < bufferSize; j++) {
-    Serial.print(buffer[j]);
-    Serial.print(" ");
-  }
-  Serial.println();
-}
-
-
 void start_capture(){
   myCAM.clear_fifo_flag();
   myCAM.start_capture();
@@ -104,7 +116,6 @@ client.write(&buffer[0], i);
 is_header = false;
 i = 0;
 myCAM.CS_HIGH();
-printBuffer();
 break; 
 }  
 if (is_header == true)
@@ -133,14 +144,13 @@ buffer[i++] = temp;
 void serverCapture(){
   delay(1000);
 start_capture();
-Serial.println(F("CAM Capturing"));
 
 int total_time = 0;
 
 total_time = millis();
 while (!myCAM.get_bit(ARDUCHIP_TRIG, CAP_DONE_MASK));
 total_time = millis() - total_time;
-Serial.print(F("capture total_time used (in miliseconds):"));
+//Serial.print(F("capture total_time used (in miliseconds):"));
 Serial.println(total_time, DEC);
 
 total_time = 0;
@@ -238,11 +248,11 @@ server.send(200, "text/plain", message);
 }
 
 void setup() {
-solarServo1.attach(servoPin1);
-solarServo1.write(servo1angle);
+SolarServo1.attach(servoPin1);
+SolarServo1.write(servo_y);
 
-solarServo2.attach(servoPin2);
-solarServo2.write(servo1angle);
+SolarServo2.attach(servoPin2);
+SolarServo2.write(servo_y);
 uint8_t vid, pid;
 uint8_t temp;
 pinMode(CS, OUTPUT);
@@ -280,21 +290,14 @@ myCAM.InitCAM();
 myCAM.OV2640_set_JPEG_size(OV2640_640x480);
 myCAM.clear_fifo_flag();
 
-    // Connect to Wi-Fi
-    WiFi.begin(ssid, password);
-    while (WiFi.status() != WL_CONNECTED) {
-        delay(500);
-        Serial.print(".");
-    }
-    Serial.println("");
-    Serial.println("WiFi connected.");
-    Serial.print("Use this URL to connect: ");
-    Serial.print("http://");
-    Serial.print(WiFi.localIP());
-    Serial.println("/stream");
-    Serial.print("http://");
-    Serial.print(WiFi.localIP());
-    Serial.println("/capture");
+  Serial.print("Setting up Access Point ... ");
+  Serial.println(WiFi.softAPConfig(local_IP, gateway, subnet) ? "Ready" : "Failed!");
+
+  Serial.print("Starting Access Point ... ");
+  Serial.println(WiFi.softAP(ssid, password) ? "Ready" : "Failed!");
+
+  Serial.print("IP address = ");
+  Serial.println(WiFi.softAPIP());
 
     // Start the server
     server.on("/capture", HTTP_GET, serverCapture);
@@ -306,7 +309,5 @@ myCAM.clear_fifo_flag();
 }
 
 void loop() {
-    if (WiFi.status() == WL_CONNECTED) {
-        server.handleClient();
-    }
+  server.handleClient();
 }

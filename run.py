@@ -3,7 +3,7 @@ import numpy as np
 import requests
 import time
 
-ESP32_IP_ADDRESS = "192.168.1.22"
+ESP32_IP_ADDRESS = "192.168.1.174"
 IMAGE_URL = f"http://{ESP32_IP_ADDRESS}/capture"
 
 def draw_dividing_boxes(image):
@@ -68,14 +68,13 @@ if __name__ == "__main__":
                 if middle_coordinates is not None:
                     print(f"Middle Coordinates: {middle_coordinates}")
                     send_coordinates_to_esp32(*middle_coordinates)
+                    time.sleep(30)
 
-                cv2.imshow('Image', image)
+                #cv2.imshow('Image', image)
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
             else:
                 print("Error fetching image from URL")
-
-            #time.sleep(5)
 
     except Exception as e:
         print(f"Error: {e}")

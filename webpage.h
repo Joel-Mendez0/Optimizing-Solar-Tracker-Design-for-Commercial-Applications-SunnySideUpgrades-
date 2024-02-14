@@ -946,19 +946,23 @@ button { cursor: pointer; }
     </div>
     <div class="chart-row two">
       <div class="chart-container-wrapper big">
-        <div class="chart-container">
-          <div class="chart-container-header">
-            <h2>Energy Production Chart</h2>
-            <span>Last 30 days</span>
-          </div>
-          <div class="line-chart">
-            <canvas id="chart"></canvas>
-          </div>
-          <div class="chart-data-details">
-            <div class="chart-details-header"></div>
-          </div>
-        </div>
-      </div>
+  <div class="chart-container">
+    <div class="chart-container-header">
+      <h2>Energy Production Chart</h2>
+      <span>Last 30 days</span>
+    </div>
+    <div class="line-chart">
+      <canvas id="chart"></canvas>
+    </div>
+    <!-- Video Stream Embedding -->
+    <div class="video-stream-container" style="margin-top: 20px;">
+      <img src="http://192.168.1.174/stream" alt="Live Video Stream" style="width:100%; max-width:640px; border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
+    </div>
+    <div class="chart-data-details">
+      <div class="chart-details-header"></div>
+    </div>
+  </div>
+</div>
       <div class="chart-container-wrapper small">
         <div class="chart-container">
           <div class="chart-container-header">

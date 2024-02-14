@@ -3,7 +3,7 @@ import numpy as np
 import requests
 import time
 
-ESP32_IP_ADDRESS = "192.168.1.174"
+ESP32_IP_ADDRESS = ""
 IMAGE_URL = f"http://{ESP32_IP_ADDRESS}/capture"
 
 def draw_dividing_boxes(image):

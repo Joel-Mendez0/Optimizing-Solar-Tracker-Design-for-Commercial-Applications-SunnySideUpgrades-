@@ -17,8 +17,8 @@ int servo_x = 180;
 const int CS = 5;
 
 // WiFi Settings for WiFi Mode
-const char* wifi_ssid = "Fios-JR9dw";
-const char* wifi_password = "dross87both74age";
+const char* wifi_ssid = "";
+const char* wifi_password = "";
 
 // Access Point Settings for AP Mode
 const char* ap_ssid = "SunnySideUpgrades_ESP32";

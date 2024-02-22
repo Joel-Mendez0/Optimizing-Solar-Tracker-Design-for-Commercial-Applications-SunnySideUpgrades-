@@ -890,7 +890,8 @@ button { cursor: pointer; }
         <div class="chart-container">
           <div class="chart-info-wrapper">
             <h2>Battery Charge</h2>
-            <span>(Maybe Capacity)</span>
+            <span id="batteryPercentage">Loading...</span>
+
           </div>
           <div class="chart-svg">
             <svg viewBox="0 0 36 36" class="circular-chart pink">
@@ -956,7 +957,7 @@ button { cursor: pointer; }
     </div>
     <!-- Video Stream Embedding -->
     <div class="video-stream-container" style="margin-top: 20px;">
-      <img src="http://1.1.1.1/stream" alt="Live Video Stream" style="width:100%; max-width:640px; border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
+      <img src="http://192.168.202.124/stream" alt="Live Video Stream" style="width:100%; max-width:640px; border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
     </div>
     <div class="chart-data-details">
       <div class="chart-details-header"></div>
@@ -1151,6 +1152,30 @@ button { cursor: pointer; }
   </div>
 </div>
     <script>
+    function updateBatteryCharge() {
+  fetch('/battery')
+    .then(response => response.text())
+    .then(percentage => {
+      document.getElementById('batteryPercentage').innerText = percentage + '%';
+      // Update the circular chart to reflect new battery percentage
+      var circle = document.querySelector('.circular-chart.pink .circle');
+      var circleBg = document.querySelector('.circular-chart.pink .circle-bg');
+      var radius = circle.r.baseVal.value;
+      var circumference = radius * 2 * Math.PI;
+      circle.style.strokeDasharray = `${(circumference * percentage) / 100} ${circumference}`;
+
+      var percentageText = document.querySelector('.circular-chart.pink .percentage');
+      percentageText.textContent = percentage + '%';
+    })
+    .catch(error => console.error('Error fetching battery data:', error));
+}
+
+// Update battery charge every 5 seconds
+setInterval(updateBatteryCharge, 5000);
+
+// Call it once on page load
+updateBatteryCharge();
+
         var chart    = document.getElementById('chart').getContext('2d'),
     gradient = chart.createLinearGradient(0, 0, 0, 450);
 

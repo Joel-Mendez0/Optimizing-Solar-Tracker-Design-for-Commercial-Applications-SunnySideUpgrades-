@@ -17,8 +17,8 @@ int servo_x = 180;
 const int CS = 5;
 
 // WiFi Settings for WiFi Mode
-const char* wifi_ssid = "";
-const char* wifi_password = "";
+const char* wifi_ssid = "Shahomie's Spot";
+const char* wifi_password = "Kevo_360_Hot Spot";
 
 // Access Point Settings for AP Mode
 const char* ap_ssid = "SunnySideUpgrades_ESP32";
@@ -37,6 +37,10 @@ static uint8_t buffer[bufferSize] = {0xFF};
 uint8_t temp = 0, temp_last = 0;
 int i = 0;
 bool is_header = false;
+
+float getBatteryPercentage() {
+  return 75.0; // Example percentage
+}
 
 void handleRoot(){
   server.send_P(200,"text/html",PAGE_MAIN);
@@ -152,7 +156,8 @@ buffer[i++] = temp;
 }
 
 void serverCapture(){
-  delay(1000);
+  // double check if delay is necessary
+  //delay(1000);
 start_capture();
 
 int total_time = 0;
@@ -258,17 +263,16 @@ server.send(200, "text/plain", message);
 }
 
 void setup() {
+  pinMode(34, ANALOG);
+  analogReadResolution(12);
   Serial.begin(115200);
-
+//*
   WiFi.begin(wifi_ssid, wifi_password);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
-  Serial.println("");
-  Serial.println("WiFi connected.");
-  Serial.println("IP address: ");
-  Serial.println(WiFi.localIP());
+  //*/
 /*
   Serial.print("Setting up Access Point ... ");
   Serial.println(WiFi.softAPConfig(local_IP, gateway, subnet) ? "Ready" : "Failed!");
@@ -276,7 +280,11 @@ void setup() {
   Serial.println(WiFi.softAP(ap_ssid, ap_password) ? "Ready" : "Failed!");
   Serial.print("IP address = ");
   Serial.println(WiFi.softAPIP());
-*/
+//*/
+Serial.println("");
+Serial.println("WiFi connected.");
+Serial.println("IP address: ");
+Serial.println(WiFi.localIP());
 SolarServo1.attach(servoPin1);
 SolarServo1.write(servo_y);
 
@@ -324,10 +332,54 @@ myCAM.clear_fifo_flag();
     server.on("/stream", HTTP_GET, serverStream);
     server.on("/update_coordinates", HTTP_POST, handleUpdateCoordinates);
     server.onNotFound(handleNotFound);
+      server.on("/battery", HTTP_GET, []() {
+    float averageVoltage = getBatteryPercentage(); // Implement this function based on your setup
+    server.send(200, "text/plain", String(averageVoltage));
+  });
+    server.onNotFound([]() {
+    server.send(404, "text/plain", "404: Not found");
+  });
     server.begin();
     Serial.println(F("Server started"));
 }
+unsigned long previousMillis = 0; // Stores the last time the average was output
+const long interval = 1000; // Interval at which to attempt reading the average (milliseconds)
 
+// Variables for handling the averaging process
+const int readingsToCollect = 500;
+int readingsCount = 0;
+long readingsSum = 0;
 void loop() {
   server.handleClient();
-}
+
+    
+  // Always collect readings, independent of the timing for output
+  if (readingsCount < readingsToCollect) {
+    int rawValue = analogRead(34);
+    readingsSum += rawValue; // Add the raw value to the sum
+    readingsCount++; // Increment the count of readings
+  }
+  
+  unsigned long currentMillis = millis();
+  
+  // If we have collected 500 readings and the interval has passed, calculate and display the average
+  if (readingsCount >= readingsToCollect && (currentMillis - previousMillis >= interval)) {
+    float averageRawValue = (float)readingsSum / readingsCount;
+    float averageVoltage = averageRawValue / 4095.0 * 3.3;
+    
+    Serial.print("Average Raw Value: ");
+    Serial.println(averageRawValue);
+    Serial.print("Average Voltage: ");
+    Serial.println(averageVoltage);
+    
+    // Reset for the next averaging cycle
+    readingsSum = 0;
+    readingsCount = 0;
+    previousMillis = currentMillis; // Update the time we last output the average
+  }
+  // No need for a delay here; loop will continue running, allowing for responsive client handling
+  //String averageVoltage = String(averageVoltage);
+  //server.send(200,"text/html",averageVoltage); 
+
+  
+}                 

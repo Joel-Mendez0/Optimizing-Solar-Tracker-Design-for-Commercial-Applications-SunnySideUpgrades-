@@ -1152,6 +1152,32 @@ button { cursor: pointer; }
   </div>
 </div>
     <script>
+function fetchWeatherData() {
+  const apiKey = 'YOUR_API_KEY';
+  // Set your location latitude and longitude
+  const lat = 'YOUR_LATITUDE';
+  const lon = 'YOUR_LONGITUDE';
+  const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`;
+
+  fetch(url)
+    .then(response => response.json())
+    .then(data => {
+      displayWeatherData(data);
+    })
+    .catch(error => console.error('Error fetching weather data:', error));
+}
+
+function displayWeatherData(data) {
+  // Example: Update temperature and weather description
+  const temperature = Math.round(data.main.temp);
+  const weatherDescription = data.weather[0].description;
+  const weatherContainer = document.querySelector('.weather-data');
+  weatherContainer.innerHTML = `<p>Temperature: ${temperature}°C</p><p>${weatherDescription}</p>`;
+}
+
+// Call it once on page load or when needed
+fetchWeatherData();
+
     function updateBatteryCharge() {
   fetch('/battery')
     .then(response => response.text())

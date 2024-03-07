@@ -351,7 +351,36 @@ int readingsCount = 0;
 long readingsSum = 0;
 void loop() {
   server.handleClient();
+  
+  if (Serial.available() > 0) {
+        String command = Serial.readStringUntil('\n');
+        command.trim();
 
+        if (command.startsWith("X")) {
+            int angle = command.substring(1).toInt();
+            if (angle >= 0 && angle <= 180) {
+                servo_x = angle;
+                SolarServo2.write(servo_x);
+                Serial.print("Servo X set to: ");
+                Serial.println(servo_x);
+            } else {
+                Serial.println("Invalid angle for Servo X");
+            }
+        }
+        else if (command.startsWith("Y")) {
+            int angle = command.substring(1).toInt();
+            if (angle >= 0 && angle <= 180) {
+                servo_y = angle;
+                SolarServo1.write(servo_y);
+                Serial.print("Servo Y set to: ");
+                Serial.println(servo_y);
+            } else {
+                Serial.println("Invalid angle for Servo Y");
+            }
+        } else {
+            Serial.println("Invalid command");
+        }
+    }
     
   // Always collect readings, independent of the timing for output
   if (readingsCount < readingsToCollect) {

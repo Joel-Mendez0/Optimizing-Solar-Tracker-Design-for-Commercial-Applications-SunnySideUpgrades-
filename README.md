@@ -3,9 +3,16 @@
 
 https://github.com/Joel-Mendez0/SunnySideUpgrades/assets/113056408/0a00a07c-9d0d-4bea-a53a-b840ea959109
 
-
-
 https://github.com/Joel-Mendez0/SunnySideUpgrades/assets/113056408/0df94f63-cf6d-4220-87a2-ee9a7fe0f15c
+
+https://github.com/Joel-Mendez0/SunnySideUpgrades/assets/113056408/1e430b4a-ef7d-49c3-810a-feeb2bbf7018
+
+https://github.com/Joel-Mendez0/SunnySideUpgrades/assets/113056408/d69d7ba9-76d0-41bc-81ad-28a8006dbb2d
+
+https://github.com/Joel-Mendez0/SunnySideUpgrades/assets/113056408/28d36b58-4055-4b7a-8ea3-65f176af0fa6
+
+
+
 
 
 ### Team Members

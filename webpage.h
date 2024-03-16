@@ -997,7 +997,7 @@ button { cursor: pointer; }
             <span class="progress-amount">8%</span>
           </div>
         </div>
-        <div class="chart-container applicants">
+        <div class="weather-forecast-container">
           <div class="chart-container-header">
             <h2>Weather Forecast</h2>
             <span>Today</span>
@@ -1288,6 +1288,58 @@ document.querySelector('.menu-button').addEventListener('click', function () {
 document.querySelector('.close-menu').addEventListener('click', function () {
     document.querySelector('.app-left').classList.remove('show');
 });
+
+function fetchWeatherData() {
+    const apiKey = 'f42f91a675d0f0955304d5503a1bfb12'; // Use your OpenWeatherMap API key
+    const cityId = '5128581'; // Example: New York City ID
+    const url = `http://api.openweathermap.org/data/2.5/forecast?id=${cityId}&appid=${apiKey}`;
+
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            updateWeatherForecast(data);
+        })
+        .catch(error => console.error('Error fetching weather data:', error));
+}
+
+function updateWeatherForecast(data) {
+    // Assuming you have a container for the forecast in your HTML
+    const forecastContainer = document.querySelector('.weather-forecast-container');
+
+    forecastContainer.innerHTML = ''; // Clear existing forecast content
+
+    // Iterate over each time interval in the forecast data
+    data.list.forEach((forecast, index) => {
+        if (index % 8 === 0) { // Assuming you want to display the forecast every 3 hours, adjust as necessary
+            const dateTime = new Date(forecast.dt * 1000); // Convert Unix timestamp to JS Date object
+            const temp = forecast.main.temp;
+            const description = forecast.weather[0].description;
+            const icon = forecast.weather[0].icon;
+
+            // Create the HTML for the forecast item
+            const forecastHTML = `
+                <div class="forecast-item">
+                    <div class="forecast-date">${dateTime.toDateString()}</div>
+                    <div class="forecast-temp">${temp}°C</div>
+                    <div class="forecast-desc">${description}</div>
+                    <div class="forecast-icon">
+                        <img src="http://openweathermap.org/img/w/${icon}.png" alt="${description}" />
+                    </div>
+                </div>
+            `;
+
+            // Append the forecast item to the container
+            forecastContainer.innerHTML += forecastHTML;
+        }
+    });
+}
+
+// Call fetchWeatherData to update the forecast on page load
+fetchWeatherData();
+
+// might want to call fetchWeatherData at regular intervals, e.g., every hour
+setInterval(fetchWeatherData, 3600000); // 3600000 ms = 1 hour
+
     </script>
 </body>
 </html>

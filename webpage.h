@@ -997,11 +997,12 @@ button { cursor: pointer; }
             <span class="progress-amount">8%</span>
           </div>
         </div>
-        <div class="weather-forecast-container">
-          <div class="chart-container-header">
-            <h2>Weather Forecast</h2>
-            <span>Today</span>
-          </div>
+	<div class="chart-container applicants">
+          <div class="weather-forecast-container"> </div>
+            <div class="chart-container-header">
+              <h2>Weather Forecast</h2>
+              <span>Today</span>
+            </div>
           <div class="applicant-line">
             <img src="https://media.discordapp.net/attachments/401578470242648075/1164365152657887272/IMG_4171.jpg?ex=65d69a8d&is=65c4258d&hm=2f2bd845ced0f8ac76ca0bb077d8aef62e2e739d8f93c80dc8f6494a8e9760bd&=&format=webp&width=708&height=673" alt="profile">
             <div class="applicant-info">

@@ -24,6 +24,10 @@ const char* wifi_password = "Kevo_360_Hot Spot";
 const char* ap_ssid = "SunnySideUpgrades_ESP32";
 const char* ap_password = "solar_shimmey";
 
+// Define dummy credentials for demonstration purposes
+const String adminUsername = "admin";
+const String adminPassword = "password";
+
 // Configure IP addresses of the local access point
 IPAddress local_IP(192,168,1,22);
 IPAddress gateway(192,168,1,5);
@@ -262,6 +266,34 @@ message += "\n";
 server.send(200, "text/plain", message);
 }
 
+// Need to create/add a url location for dashboard now
+void handleLogin() {
+    if (server.hasArg("username") && server.hasArg("password")) {
+        String username = server.arg("username");
+        String password = server.arg("password");
+
+        if (username == adminUsername && password == adminPassword) {
+            // Credentials are correct
+            Serial.println("Login successful");
+
+            // Redirect to the dashboard or send user data
+            // For now, we just send a simple text response
+            server.send(200, "text/plain", "Login successful. Welcome to the dashboard!");
+
+            // For a real application, you might redirect the user to another page
+            // server.sendHeader("Location", "/dashboard");
+            // server.send(302, "text/plain", ""); // HTTP status code 302: Found (Redirection)
+        } else {
+            // Credentials are incorrect
+            Serial.println("Login failed");
+            server.send(401, "text/plain", "Login failed. Invalid username or password.");
+        }
+    } else {
+        server.send(400, "text/plain", "Login failed. Missing username or password.");
+    }
+}
+
+
 void setup() {
   pinMode(34, ANALOG);
   analogReadResolution(12);
@@ -341,7 +373,13 @@ myCAM.clear_fifo_flag();
   });
     server.begin();
     Serial.println(F("Server started"));
+  
+    // Add login route
+    server.on("/login", HTTP_POST, handleLogin);
+  
 }
+
+
 unsigned long previousMillis = 0; // Stores the last time the average was output
 const long interval = 1000; // Interval at which to attempt reading the average (milliseconds)
 
@@ -349,6 +387,8 @@ const long interval = 1000; // Interval at which to attempt reading the average 
 const int readingsToCollect = 500;
 int readingsCount = 0;
 long readingsSum = 0;
+
+
 void loop() {
   server.handleClient();
   

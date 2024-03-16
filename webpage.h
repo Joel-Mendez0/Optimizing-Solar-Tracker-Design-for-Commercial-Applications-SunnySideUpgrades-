@@ -910,7 +910,7 @@ button { cursor: pointer; }
         <div class="chart-container">
           <div class="chart-info-wrapper">
             <h2>Extra Energy Produced</h2>
-            <span>5.5 kWh</span>
+            <span id="extraEnergy">Loading...</span>
           </div>
           <div class="chart-svg">
             <svg viewBox="0 0 36 36" class="circular-chart blue">
@@ -929,7 +929,7 @@ button { cursor: pointer; }
         <div class="chart-container">
           <div class="chart-info-wrapper">
             <h2>Total Energy Produced</h2>
-            <span>10.5 KW</span>
+            <span id=totalEnergy>Loading...</span>
           </div>
            <div class="chart-svg">
             <svg viewBox="0 0 36 36" class="circular-chart orange">
@@ -1199,6 +1199,33 @@ fetchWeatherData();
 
 // Update battery charge every 5 seconds
 setInterval(updateBatteryCharge, 5000);
+
+
+function updateExtraEnergy() {
+    fetch('/extra_energy')
+        .then(response => response.text())
+        .then(energy => {
+            document.getElementById('extraEnergy').innerText = energy + ' kWh';
+        })
+        .catch(error => console.error('Error fetching extra energy data:', error));
+}
+
+function updateTotalEnergy() {
+    fetch('/total_energy')
+        .then(response => response.text())
+        .then(energy => {
+            document.getElementById('totalEnergy').innerText = energy + ' kWh';
+        })
+        .catch(error => console.error('Error fetching total energy data:', error));
+}
+
+// Call these functions to update the values on page load
+updateExtraEnergy();
+updateTotalEnergy();
+
+// Optionally, set intervals to regularly update these values
+setInterval(updateExtraEnergy, 60000); // Update every minute
+setInterval(updateTotalEnergy, 60000); // Update every minute
 
 // Call it once on page load
 updateBatteryCharge();

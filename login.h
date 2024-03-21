@@ -1,4 +1,4 @@
-const char PAGE_MAIN[] PROGMEM = R"=====(
+const char LOGIN_PAGE[] PROGMEM = R"=====(
 <!-- Not sure if I have to change PAGE_MAIN to smth else -->
 <!DOCTYPE html>
 <html lang="en">

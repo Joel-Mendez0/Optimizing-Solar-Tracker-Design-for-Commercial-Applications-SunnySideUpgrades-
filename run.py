@@ -7,16 +7,13 @@ ESP32_IP_ADDRESS = ""
 IMAGE_URL = f"http://{ESP32_IP_ADDRESS}/capture"
 
 def draw_dividing_boxes(image):
-    # Define colors and thickness for visualization
-    color = (255, 0, 0) # Blue color in BGR
-    thickness = 2
-
-    # Height and width of the image
+    color = (255, 0, 0)  # Blue color in BGR
+    thickness = 1
     height, width, _ = image.shape
 
-    for i in range(1, 10):  # Vertical lines
+    for i in range(1, 10):  # Draw vertical lines
         cv2.line(image, (i * width // 10, 0), (i * width // 10, height), color, thickness)
-    for j in range(1, 10):  # Horizontal lines
+    for j in range(1, 10):  # Draw horizontal lines
         cv2.line(image, (0, j * height // 10), (width, j * height // 10), color, thickness)
 
 def send_coordinates_to_esp32(middle_x, middle_y):
@@ -29,7 +26,6 @@ def send_coordinates_to_esp32(middle_x, middle_y):
         print(f"Error sending data to ESP32: {e}")
 
 def find_brightest_area(image):
-    # Convert the image to grayscale and find the brightest region
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     _, thresh = cv2.threshold(gray, 240, 255, cv2.THRESH_BINARY)
     contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -48,29 +44,42 @@ def find_brightest_area(image):
     else:
         return None
 
-def fetch_image(url):
-    response = requests.get(url)
-    if response.status_code == 200:
-        image = np.asarray(bytearray(response.content), dtype="uint8")
-        image = cv2.imdecode(image, cv2.IMREAD_COLOR)
-        return image
-    else:
-        return None
+def fetch_image(url, retries=3):
+    attempt = 0
+    while attempt < retries:
+        response = requests.get(url)
+        if response.status_code == 200:
+            image_data = np.asarray(bytearray(response.content), dtype="uint8")
+            image = cv2.imdecode(image_data, cv2.IMREAD_COLOR)
+            if image is not None:
+                return image
+            else:
+                print(f"Received empty buffer, retrying ({attempt + 1}/{retries})...")
+        else:
+            print(f"Failed to fetch image, HTTP status code: {response.status_code}")
+
+        attempt += 1
+        time.sleep(1)  # wait a bit before retrying
+
+    return None
 
 if __name__ == "__main__":
     try:
         while True:
+            start_time = time.time()
             image = fetch_image(IMAGE_URL)
             if image is not None:
-                draw_dividing_boxes(image)  # Draw the dividing boxes on the image
+                draw_dividing_boxes(image)
                 middle_coordinates = find_brightest_area(image)
 
                 if middle_coordinates is not None:
                     print(f"Middle Coordinates: {middle_coordinates}")
                     send_coordinates_to_esp32(*middle_coordinates)
-                    time.sleep(30)
+                    end_time = time.time()
+                    duration_ms = (end_time - start_time) * 1000
+                    print(f"Time taken: {duration_ms:.2f} ms")
 
-                #cv2.imshow('Image', image)
+                cv2.imshow('Image', image)
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
             else:

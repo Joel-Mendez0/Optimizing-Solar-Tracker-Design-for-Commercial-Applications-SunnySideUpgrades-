@@ -295,24 +295,15 @@ void displayLoginPage() {
 void handleLogin() {
     Serial.println("Handle Called");
     if (server.hasArg("username") && server.hasArg("password")) {
-        String username = server.arg("username");
-        String password = server.arg("password");
-        Serial.println("Username: " + username);
-        Serial.println("Password: " + password);
-
-        if (username == adminUsername && password == adminPassword) {
-            Serial.println("Login successful");
-
-            // Redirect the user to the home page
-            server.sendHeader("Location", "/home");
-            server.send(302, "text/plain", ""); // HTTP status code 302 for redirection
+         if (server.arg("username") == "admin" && server.arg("password") == "password") {
+                server.sendHeader("Location", "/home", true);
+                server.send(302, "text/plain", "");  // Redirect to /home
+            } else {
+                server.send(401, "text/html", "Unauthorized");  // Invalid credentials
+            }
         } else {
-            Serial.println("Login failed");
-            server.send(401, "text/plain", "Login failed. Invalid username or password.");
+            server.send(400, "text/html", "Bad Request");  // Missing username or password
         }
-    } else {
-        server.send(400, "text/plain", "Login failed. Missing username or password.");
-    }
 }
 
 void setup() {

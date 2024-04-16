@@ -18,6 +18,15 @@ int servo_y = 180;
 int servo_x = 180;
 const int CS = 5;
 
+// might need to change this value
+const int analogPin = 34; // The GPIO pin where the voltage is read
+
+// Structure to hold the timestamp and voltage reading
+struct VoltageReading {
+    unsigned long timeStamp; // Time of the reading
+    float voltage; // Voltage value
+} latestReading;
+
 // WiFi Settings for WiFi Mode
 const char* wifi_ssid = "Shahomie's Spot";
 const char* wifi_password = "Kevo_360_Hot Spot";
@@ -67,6 +76,8 @@ void handleRoot(){
 int servoX = 135; // Initial middle position for X
 int servoY = 135; // Initial middle position for Y
 void updateServoAngles(int x, int y) {
+    // 90 and 180
+
     // Center of the screen
     int centerX = 240; // X midpoint
     int centerY = 320; // Y midpoint
@@ -89,9 +100,18 @@ void updateServoAngles(int x, int y) {
       }
     }
 
-    servoX = constrain(servoX, 0, 180);
-    servoY = constrain(servoY, 0, 180);
-    
+    if(servoY >= 180){
+      servoY = 180; 
+    }
+    if(servoX >= 180){
+      servoX = 180;
+    }
+    if(servoX <= 0){
+      servoX = 0;
+    }
+    if(servoY <= 90){
+      servoY = 90;
+    }
     SolarServo1.write(servoY);
     SolarServo2.write(servoX);
 
@@ -306,8 +326,47 @@ void handleLogin() {
         }
 }
 
+// Function to read the voltage from the solar panel
+float readVoltage() {
+    int rawPanelValue = analogRead(analogPin); // Read the raw analog value
+    float voltage = (rawPanelValue / 4095.0) * 3.3; // Convert the analog read value to voltage (0-3.3V)
+    float panelVoltage = (voltage / 3.3) * 12.0; // Convert to panel voltage (0-12V)
+    return panelVoltage;
+}
+
+// Function to store the voltage reading along with the timestamp
+void storeReading(float voltage) {
+    latestReading = {millis(), voltage};
+}
+
+float calculateExtraEnergy() {
+    float standardPanelVoltage = latestReading.voltage / 1.5; // Simulated more efficient panel voltage
+    float averageCurrent = 10.0; // Assuming a constant current in Amperes
+    float standardPanelEnergy = standardPanelVoltage * averageCurrent / 1000.0; // Energy for a more efficient panel
+    float myPanelEnergy = latestReading.voltage * averageCurrent / 1000.0; // Energy for my actual panel
+    return myPanelEnergy - standardPanelEnergy; // Difference in energy
+}
+
+
+float calculateTotalEnergy() {
+    float averageCurrent = 10.0;
+    return latestReading.voltage * averageCurrent / 1000.0;
+}
+
+void handleExtraEnergy() {
+    float extraEnergy = calculateExtraEnergy();
+    server.send(200, "text/plain", String(extraEnergy));
+}
+
+void handleTotalEnergy() {
+    float totalEnergy = calculateTotalEnergy();
+    server.send(200, "text/plain", String(totalEnergy));
+}
+
+
 void setup() {
   pinMode(34, ANALOG);
+  pinMode(35, ANALOG);
   analogReadResolution(12);
   Serial.begin(115200);
   WiFi.begin(wifi_ssid, wifi_password);
@@ -367,8 +426,10 @@ void setup() {
       server.on("/stream", HTTP_GET, serverStream);
       server.on("/update_coordinates", HTTP_POST, handleUpdateCoordinates);
       server.onNotFound(handleNotFound);
+      server.on("/extra_energy", handleExtraEnergy);
+      server.on("/total_energy", handleTotalEnergy);
       server.on("/battery", HTTP_GET, []() {
-        int rawValue = analogRead(34); // Read the current voltage
+        int rawValue = analogRead(35); // Read the current voltage
         float voltage = rawValue / 4095.0 * 3.3; // Convert raw reading to voltage
         float percent = getBatteryPercentage(voltage); // Calculate current battery percentage
     
@@ -376,6 +437,7 @@ void setup() {
       });
       server.on("/ip", HTTP_GET, []() {
         server.send(200, "text/plain", WiFi.localIP().toString());
+        Serial.println("This is getting sent to the webapp:" + WiFi.localIP());
       });
 
       server.onNotFound([]() {
@@ -389,7 +451,7 @@ void setup() {
   SolarServo2.attach(servoPin2);
   SolarServo2.write(135);
   }
-  /*
+  
   unsigned long previousMillis = 0; // Stores the last time the average was output
   const long interval = 1000; // Interval at which to attempt reading the average (milliseconds)
 
@@ -397,7 +459,7 @@ void setup() {
   const int readingsToCollect = 500;
   int readingsCount = 0;
   long readingsSum = 0;
-  */
+  
 void loop() {
     server.handleClient();
 
@@ -433,7 +495,7 @@ void loop() {
           }
           else if (command.startsWith("Y")) {
               int angle = command.substring(1).toInt();
-              if (angle >= 0 && angle <= 180) {
+              if (angle >= 90 && angle <= 180) {
                   servo_y = angle;
                   SolarServo1.write(servo_y);
                   Serial.print("Servo Y set to: ");
@@ -445,10 +507,10 @@ void loop() {
               Serial.println("Invalid command");
           }
       }
-    /* 
+ 
     // Always collect readings, independent of the timing for output
     if (readingsCount < readingsToCollect) {
-      int rawValue = analogRead(34);
+      int rawValue = analogRead(35);
       readingsSum += rawValue; // Add the raw value to the sum
       readingsCount++; // Increment the count of readings
     }
@@ -471,6 +533,19 @@ void loop() {
       previousMillis = currentMillis; // Update the time we last output the average
 
     }
-    */
+    
+    static unsigned long lastReadTime = 0; // Last time the voltage was read
+      const long interval = 5000; // Interval between reads, 1 hour in milliseconds
+
+      unsigned long currentTime = millis(); // Get the current time
+        if (currentTime - lastReadTime >= interval) { // Check if the interval has passed
+          float voltage = readVoltage(); // Read the current voltage
+          storeReading(voltage); // Store the reading
+          lastReadTime = currentTime; // Update the last read time
+        
+          Serial.print("Latest Voltage Reading: ");
+          Serial.println(latestReading.voltage);
+        }
+
     }
                    

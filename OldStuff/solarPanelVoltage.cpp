@@ -1,5 +1,3 @@
-#include <SD.h>
-#include <SPI.h>
 #include <vector>
 
 // might need to change this value

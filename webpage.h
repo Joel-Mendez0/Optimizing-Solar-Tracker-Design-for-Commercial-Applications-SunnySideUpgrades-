@@ -1368,6 +1368,21 @@ fetchWeatherData();
 // might want to call fetchWeatherData at regular intervals, e.g., every hour
 setInterval(fetchWeatherData, 3600000); // 3600000 ms = 1 hour
 
+// For videostream ip
+function updateVideoStream() {
+  fetch('/ip')
+    .then(response => response.text())
+    .then(ip => {
+      var videoStreamUrl = 'http://' + ip + '/stream';
+      document.getElementById('videoStream').src = videoStreamUrl;
+    })
+    .catch(error => console.error('Error fetching IP:', error));
+}
+
+// Call this function when the page loads
+document.addEventListener('DOMContentLoaded', function() {
+  updateVideoStream();
+});
     </script>
 </body>
 </html>

@@ -331,6 +331,7 @@ float readVoltage() {
     int rawPanelValue = analogRead(analogPin); // Read the raw analog value
     float voltage = (rawPanelValue / 4095.0) * 3.3; // Convert the analog read value to voltage (0-3.3V)
     float panelVoltage = (voltage / 3.3) * 12.0; // Convert to panel voltage (0-12V)
+    Serial.println("Panel Voltage: " + String(panelVoltage));
     return panelVoltage;
 }
 
@@ -426,8 +427,15 @@ void setup() {
       server.on("/stream", HTTP_GET, serverStream);
       server.on("/update_coordinates", HTTP_POST, handleUpdateCoordinates);
       server.onNotFound(handleNotFound);
-      server.on("/extra_energy", handleExtraEnergy);
-      server.on("/total_energy", handleTotalEnergy);
+      // server.on("/extra_energy", handleExtraEnergy);
+      server.on("/extra_energy", HTTP_GET, []() {
+        float extraEnergy = calculateExtraEnergy();
+        server.send(200, "text/plain", String(extraEnergy, 2)); // Send extra energy as a percentage in plain text
+      });
+      server.on("/total_energy", HTTP_GET, []() {
+        float totalEnergy = calculateTotalEnergy();
+        server.send(200, "text/plain", String(totalEnergy, 2)); // Send total energy as a percentage in plain text
+      });
       server.on("/battery", HTTP_GET, []() {
         int rawValue = analogRead(35); // Read the current voltage
         float voltage = rawValue / 4095.0 * 3.3; // Convert raw reading to voltage
@@ -526,6 +534,7 @@ void loop() {
       Serial.println(averageRawValue);
       Serial.print("Average Voltage: ");
       Serial.println(averageVoltage);
+      
       
       // Reset for the next averaging cycle
       readingsSum = 0;

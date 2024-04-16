@@ -4,8 +4,6 @@
 
 // might need to change this value
 const int analogPin = 35; // The GPIO pin where the voltage is read
-const String dataFileName = "EnergyData.txt"; // File name for storing data
-File dataFile;
 
 // Structure to hold the timestamp and voltage reading
 struct VoltageReading {
@@ -13,7 +11,7 @@ struct VoltageReading {
     float voltage; // Voltage value
 };
 
-std::vector<VoltageReading> readings; // Vector to store multiple readings
+VoltageReading latestReading; // Variable to store the latest reading
 
 // Function to read the voltage from the solar panel
 float readVoltage() {
@@ -26,21 +24,6 @@ float readVoltage() {
 // Function to store the voltage reading along with the timestamp
 void storeReading(float voltage) {
     readings.push_back({millis(), voltage});
-}
-
-// Function to write the stored readings to the SD card
-void writeReadingsToFile() {
-    dataFile = SD.open(dataFileName, FILE_WRITE); // Open the SD card file for writing
-    if (dataFile) {
-        for (const auto& reading : readings) { // Iterate through all stored readings
-            String dataLine = String(reading.timeStamp) + "," + String(reading.voltage);
-            dataFile.println(dataLine); // Write each reading as a new line in the file
-        }
-        dataFile.close(); // Close the file after writing
-        readings.clear(); // Clear the readings from memory after writing to file
-    } else {
-        Serial.println("Error opening file for writing");
-    }
 }
 
 float calculateExtraEnergy() {
@@ -85,7 +68,6 @@ void handleTotalEnergy() {
 void setup() {
     Serial.begin(115200); // Start the serial communication
     pinMode(analogPin, INPUT); // Set the analog pin as input
-    SD.begin(); // Initialize the SD card module
 
     server.on("/extra_energy", handleExtraEnergy);
     server.on("/total_energy", handleTotalEnergy);
@@ -105,10 +87,9 @@ void loop() {
         float voltage = readVoltage(); // Read the current voltage
         storeReading(voltage); // Store the reading
         lastReadTime = currentTime; // Update the last read time
-
-        // Write to file once per day or when readings reach a certain number (e.g., 24 for once per hour)
-        if (readings.size() >= 24 || currentTime % (24 * 3600000) == 0) {
-            writeReadingsToFile(); // Write the stored readings to the SD card
+        
+        Serial.print("Latest Voltage Reading: ");
+        Serial.println(latestReading.voltage);
         }
     }
 }

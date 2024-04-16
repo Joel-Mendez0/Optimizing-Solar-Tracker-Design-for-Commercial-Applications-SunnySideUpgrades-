@@ -123,13 +123,31 @@ body {
       <button>login</button>
       <p class="message">Not registered? <a href="#">Create an account</a></p>
     </form>
+    <form onsubmit="return login()">
+        Username: <input type="text" id="username"><br>
+        Password: <input type="password" id="password"><br>
+        <input type="submit" value="Login">
+    </form>
   </div>
 </div>
     <script>
-$('.message a').click(function(){
-   $('form').animate({height: "toggle", opacity: "toggle"}, "slow");
-});
-    </script>
+    $('.message a').click(function(){
+       $('form').animate({height: "toggle", opacity: "toggle"}, "slow");
+        });
+
+    function login() {
+        var username = document.getElementById('username').value;
+        var password = document.getElementById('password').value;
+        
+        if (username == 'admin' && password == 'password') {
+            window.location.href = '/webpage'; // Redirect to the main page
+        } else {
+            alert('Invalid username or password');
+        }
+        
+        return false; // Prevent form submission
+    }
+</script>
 </body>
 </html>
 )=====";

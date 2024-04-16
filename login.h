@@ -118,15 +118,10 @@ body {
       <p class="message">Already registered? <a href="#">Sign In</a></p>
     </form>
     <form class="login-form">
-      <input type="text" placeholder="username"/>
-      <input type="password" placeholder="password"/>
+      <input type="text" placeholder="username" id="username"/>
+      <input type="password" placeholder="password" id="password"/>
       <button>login</button>
       <p class="message">Not registered? <a href="#">Create an account</a></p>
-    </form>
-    <form onsubmit="return login()">
-        Username: <input type="text" id="username"><br>
-        Password: <input type="password" id="password"><br>
-        <input type="submit" value="Login">
     </form>
   </div>
 </div>

@@ -1202,13 +1202,15 @@ setInterval(updateBatteryCharge, 5000);
 
 function updateExtraEnergy() {
     fetch('/extra_energy')
-        .then(response => response.text())
-        .then(energy => {
-            document.getElementById('extraEnergy').innerText = energy + ' kWh';
+        .then(response => response.json()) // assuming the server response is in JSON format
+        .then(data => {
+            var energy = parseFloat(data.energy); // make sure this matches the actual key where the energy is stored
+            var percentage = energy; // directly use energy as a percentage if it's already in that format
+            document.getElementById('extraEnergy').innerText = percentage + '%';
 
-	// Update the circular chart to reflect new energy percentage
+            // Update the circular chart to reflect new energy percentage
             var circle = document.querySelector('.circular-chart.blue .circle');
-            var fullLength = 100; // Total length of the path, you need to set this according to your SVG
+            var fullLength = 100; // Total length of the path, adjust to your SVG's actual length
             var filledLength = (fullLength * percentage) / 100;
             circle.style.strokeDasharray = `${filledLength}, ${fullLength}`;
 
@@ -1220,13 +1222,15 @@ function updateExtraEnergy() {
 
 function updateTotalEnergy() {
     fetch('/total_energy')
-        .then(response => response.text())
-        .then(energy => {
-            document.getElementById('totalEnergy').innerText = energy + ' kW';
+        .then(response => response.json()) // assuming the server response is in JSON format
+        .then(data => {
+            var energy = parseFloat(data.energy); // make sure this matches the actual key where the energy is stored
+            var percentage = energy; // directly use energy as a percentage if it's already in that format
+            document.getElementById('totalEnergy').innerText = percentage + '%';
 
-	 // Update the circular chart to reflect new energy percentage
+            // Update the circular chart to reflect new energy percentage
             var circle = document.querySelector('.circular-chart.orange .circle');
-            var fullLength = 100; // Total length of the path, you need to set this according to your SVG
+            var fullLength = 100; // Total length of the path, adjust to your SVG's actual length
             var filledLength = (fullLength * percentage) / 100;
             circle.style.strokeDasharray = `${filledLength}, ${fullLength}`;
 

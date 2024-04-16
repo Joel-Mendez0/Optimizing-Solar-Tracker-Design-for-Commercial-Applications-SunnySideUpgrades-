@@ -120,7 +120,7 @@ body {
     <form class="login-form">
       <input type="text" placeholder="username" id="username"/>
       <input type="password" placeholder="password" id="password"/>
-      <button>login</button>
+      <button type="button" onclick="login()">login</button>
       <p class="message">Not registered? <a href="#">Create an account</a></p>
     </form>
   </div>

@@ -957,7 +957,7 @@ button { cursor: pointer; }
     </div>
     <!-- Video Stream Embedding -->
     <div class="video-stream-container" style="margin-top: 20px;">
-      <img src="http://"IP"/stream" alt="Live Video Stream" style="width:100%; max-width:640px; border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
+      <img id="videoStream" src="" alt="Live Video Stream" style="width:100%; max-width:640px; border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
     </div>
     <div class="chart-data-details">
       <div class="chart-details-header"></div>

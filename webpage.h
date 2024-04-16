@@ -1222,7 +1222,7 @@ function updateTotalEnergy() {
     fetch('/total_energy')
         .then(response => response.text())
         .then(energy => {
-            document.getElementById('totalEnergy').innerText = energy + ' kWh';
+            document.getElementById('totalEnergy').innerText = energy + ' kW';
 
 	 // Update the circular chart to reflect new energy percentage
             var circle = document.querySelector('.circular-chart.orange .circle');
@@ -1399,6 +1399,10 @@ function updateVideoStream() {
 // Call this function when the page loads
 document.addEventListener('DOMContentLoaded', function() {
   updateVideoStream();
+  updateExtraEnergy();
+  updateTotalEnergy();
+  setInterval(updateExtraEnergy, 60000); // Update every minute
+  setInterval(updateTotalEnergy, 60000); // Update every minute
 });
     </script>
 </body>

@@ -1203,7 +1203,7 @@ setInterval(updateBatteryCharge, 5000);
 function updateExtraEnergy() {
     fetch('/extra_energy')
         .then(response => response.json()) // assuming the server response is in JSON format
-        .then(data => {
+        .then(percentage => {
             var energy = parseFloat(data.energy); // make sure this matches the actual key where the energy is stored
             var percentage = energy; // directly use energy as a percentage if it's already in that format
             document.getElementById('extraEnergy').innerText = percentage + '%';
@@ -1223,7 +1223,7 @@ function updateExtraEnergy() {
 function updateTotalEnergy() {
     fetch('/total_energy')
         .then(response => response.json()) // assuming the server response is in JSON format
-        .then(data => {
+        .then(percentage => {
             var energy = parseFloat(data.energy); // make sure this matches the actual key where the energy is stored
             var percentage = energy; // directly use energy as a percentage if it's already in that format
             document.getElementById('totalEnergy').innerText = percentage + '%';

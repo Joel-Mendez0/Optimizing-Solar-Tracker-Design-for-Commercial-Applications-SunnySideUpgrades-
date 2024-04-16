@@ -140,7 +140,7 @@ body {
         var password = document.getElementById('password').value;
         
         if (username == 'admin' && password == 'password') {
-            window.location.href = '/webpage'; // Redirect to the main page
+            window.location.href = '/home'; // Redirect to the main page
         } else {
             alert('Invalid username or password');
         }

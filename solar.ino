@@ -373,7 +373,11 @@ void setup() {
         float percent = getBatteryPercentage(voltage); // Calculate current battery percentage
     
         server.send(200, "text/plain", String(percent)); // Send updated percentage
-  });
+      });
+      server.on("/ip", HTTP_GET, []() {
+        server.send(200, "text/plain", WiFi.localIP().toString());
+      });
+
       server.onNotFound([]() {
       server.send(404, "text/plain", "404: Not found");
     });

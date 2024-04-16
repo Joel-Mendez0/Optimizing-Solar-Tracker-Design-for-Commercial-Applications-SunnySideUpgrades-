@@ -1205,6 +1205,15 @@ function updateExtraEnergy() {
         .then(response => response.text())
         .then(energy => {
             document.getElementById('extraEnergy').innerText = energy + ' kWh';
+
+	// Update the circular chart to reflect new energy percentage
+            var circle = document.querySelector('.circular-chart.blue .circle');
+            var fullLength = 100; // Total length of the path, you need to set this according to your SVG
+            var filledLength = (fullLength * percentage) / 100;
+            circle.style.strokeDasharray = `${filledLength}, ${fullLength}`;
+
+            var percentageText = document.querySelector('.circular-chart.blue .percentage');
+            percentageText.textContent = percentage + '%';
         })
         .catch(error => console.error('Error fetching extra energy data:', error));
 }
@@ -1214,6 +1223,15 @@ function updateTotalEnergy() {
         .then(response => response.text())
         .then(energy => {
             document.getElementById('totalEnergy').innerText = energy + ' kWh';
+
+	 // Update the circular chart to reflect new energy percentage
+            var circle = document.querySelector('.circular-chart.orange .circle');
+            var fullLength = 100; // Total length of the path, you need to set this according to your SVG
+            var filledLength = (fullLength * percentage) / 100;
+            circle.style.strokeDasharray = `${filledLength}, ${fullLength}`;
+
+            var percentageText = document.querySelector('.circular-chart.orange .percentage');
+            percentageText.textContent = percentage + '%';
         })
         .catch(error => console.error('Error fetching total energy data:', error));
 }

@@ -1183,14 +1183,13 @@ fetchWeatherData();
   fetch('/battery')
     .then(response => response.text())
     .then(percentage => {
-      document.getElementById('batteryPercentage').innerText = percentage + '%';
+            document.getElementById('batteryPercentage').innerText = percentage + '%';
       // Update the circular chart to reflect new battery percentage
       var circle = document.querySelector('.circular-chart.pink .circle');
-      var circleBg = document.querySelector('.circular-chart.pink .circle-bg');
-      var radius = circle.r.baseVal.value;
-      var circumference = radius * 2 * Math.PI;
-      circle.style.strokeDasharray = `${(circumference * percentage) / 100} ${circumference}`;
-
+      var fullLength = 100; // Total length of the path
+      var filledLength = (fullLength * percentage) / 100;
+      circle.style.strokeDasharray = `${filledLength}, ${fullLength}`;
+      
       var percentageText = document.querySelector('.circular-chart.pink .percentage');
       percentageText.textContent = percentage + '%';
     })

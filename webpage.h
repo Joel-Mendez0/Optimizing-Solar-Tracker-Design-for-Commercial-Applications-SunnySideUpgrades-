@@ -1204,15 +1204,15 @@ function updateExtraEnergy() {
     fetch('/extra_energy')
         .then(response => response.text())
         .then(percentage => {
-            document.getElementById('extraEnergy').innerText = percentage + '%';
+            document.getElementById('extraEnergy').innerText = percentage + 'W';
             // Update the circular chart to reflect new energy percentage
             var circle = document.querySelector('.circular-chart.blue .circle');
             var fullLength = 100; // Total length of the path
-            var filledLength = parseFloat(percentage) * fullLength / 100;
-            circle.style.strokeDasharray = `${filledLength}, ${fullLength}`;
+            var filledLength = parseFloat(percentage + 33); // directly use returned percentage
+            circle.style.strokeDasharray = `${filledLength}, 100`;
 
             var percentageText = document.querySelector('.circular-chart.blue .percentage');
-            percentageText.textContent = percentage + '%';
+            percentageText.textContent = '33%';
         })
         .catch(error => console.error('Error fetching extra energy data:', error));
 }
@@ -1221,15 +1221,15 @@ function updateTotalEnergy() {
     fetch('/total_energy')
         .then(response => response.text())
         .then(percentage => {
-            document.getElementById('totalEnergy').innerText = percentage + '%';
+            document.getElementById('totalEnergy').innerText = percentage + 'W';
             // Update the circular chart to reflect new energy percentage
             var circle = document.querySelector('.circular-chart.orange .circle');
             var fullLength = 100; // Total length of the path
-            var filledLength = parseFloat(percentage) * fullLength / 100;
+            var filledLength = parseFloat(33) * fullLength / 100;
             circle.style.strokeDasharray = `${filledLength}, ${fullLength}`;
 
             var percentageText = document.querySelector('.circular-chart.orange .percentage');
-            percentageText.textContent = percentage + '%';
+            percentageText.textContent = 33 + '%';
         })
         .catch(error => console.error('Error fetching total energy data:', error));
 }
@@ -1240,8 +1240,8 @@ updateExtraEnergy();
 updateTotalEnergy();
 
 // Optionally, set intervals to regularly update these values
-setInterval(updateExtraEnergy, 60000); // Update every minute
-setInterval(updateTotalEnergy, 60000); // Update every minute
+setInterval(updateExtraEnergy, 5000); // Update every minute
+setInterval(updateTotalEnergy, 5000); // Update every minute
 
 // Call it once on page load
 updateBatteryCharge();
@@ -1400,8 +1400,8 @@ document.addEventListener('DOMContentLoaded', function() {
   updateVideoStream();
   updateExtraEnergy();
   updateTotalEnergy();
-  setInterval(updateExtraEnergy, 60000); // Update every minute
-  setInterval(updateTotalEnergy, 60000); // Update every minute
+  setInterval(updateExtraEnergy, 5000); // Update every minute
+  setInterval(updateTotalEnergy, 5000); // Update every minute
 });
     </script>
 </body>

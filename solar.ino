@@ -341,11 +341,22 @@ void storeReading(float voltage) {
 }
 
 float calculateExtraEnergy() {
-    float standardPanelVoltage = latestReading.voltage / 1.5; // Simulated more efficient panel voltage
-    float averageCurrent = 10.0; // Assuming a constant current in Amperes
-    float standardPanelEnergy = standardPanelVoltage * averageCurrent / 1000.0; // Energy for a more efficient panel
-    float myPanelEnergy = latestReading.voltage * averageCurrent / 1000.0; // Energy for my actual panel
-    return myPanelEnergy - standardPanelEnergy; // Difference in energy
+    // Simulated or actual method to calculate extra energy
+    float standardPanelEnergy = 1200.0; // This could be a standard or expected energy value for comparison
+    float actualPanelEnergy = calculateTotalEnergy(); // Actual energy produced
+
+    if (standardPanelEnergy == 0) {
+        return 0; // Avoid division by zero
+    }
+
+    float extraEnergy = actualPanelEnergy - standardPanelEnergy;
+    if (extraEnergy < 0) {
+        extraEnergy = 0; // Only consider positive extra energy
+    }
+
+    // Convert extra energy to a percentage of the total energy
+    float extraEnergyPercentage = (extraEnergy / standardPanelEnergy) * 100;
+    return extraEnergyPercentage;
 }
 
 
@@ -364,6 +375,8 @@ void handleTotalEnergy() {
     server.send(200, "text/plain", String(totalEnergy));
 }
 
+  float totalPower = 0;
+  float extraPower = 0;
 
 void setup() {
   pinMode(34, ANALOG);
@@ -420,6 +433,8 @@ void setup() {
   myCAM.OV2640_set_JPEG_size(OV2640_640x480);
   myCAM.clear_fifo_flag();
 
+
+
       // Start the server
       server.on("/home",handleRoot);
       server.on("/login", handleLoginRoute);
@@ -428,14 +443,23 @@ void setup() {
       server.on("/update_coordinates", HTTP_POST, handleUpdateCoordinates);
       server.onNotFound(handleNotFound);
       // server.on("/extra_energy", handleExtraEnergy);
+      // Adjusted function to send the extra energy as a percentage
       server.on("/extra_energy", HTTP_GET, []() {
-        float extraEnergy = calculateExtraEnergy();
-        server.send(200, "text/plain", String(extraEnergy, 2)); // Send extra energy as a percentage in plain text
-      });
+      // Assuming the analog read gives us a voltage that we convert to energy
+        int rawValue = analogRead(34);  // Read the current voltage from solar panel
+        float voltage = (rawValue / 4095.0) * 3.3;  // Convert raw reading to voltage assuming a 3.3V scale
+        float panelVoltage = (voltage / 3.3) * 12.0; // convert BACK
+        float panelPower = (panelVoltage * panelVoltage / 2200.0) * 1000; // This function should convert voltage to power
+        extraPower = panelPower * 0.33;
+        Serial.println("This is what we're sending: " + String(extraPower));
+      server.send(200, "text/plain", String(extraPower, 2));  // Send power
+    });
+
       server.on("/total_energy", HTTP_GET, []() {
-        float totalEnergy = calculateTotalEnergy();
-        server.send(200, "text/plain", String(totalEnergy, 2)); // Send total energy as a percentage in plain text
+        totalPower = totalPower + extraPower;
+        server.send(200, "text/plain", String(totalPower, 2)); // Send total energy as a percentage in plain text
       });
+
       server.on("/battery", HTTP_GET, []() {
         int rawValue = analogRead(35); // Read the current voltage
         float voltage = rawValue / 4095.0 * 3.3; // Convert raw reading to voltage
@@ -515,7 +539,7 @@ void loop() {
               Serial.println("Invalid command");
           }
       }
- 
+ /*
     // Always collect readings, independent of the timing for output
     if (readingsCount < readingsToCollect) {
       int rawValue = analogRead(35);
@@ -542,6 +566,7 @@ void loop() {
       previousMillis = currentMillis; // Update the time we last output the average
 
     }
+    */
     
     static unsigned long lastReadTime = 0; // Last time the voltage was read
       const long interval = 5000; // Interval between reads, 1 hour in milliseconds

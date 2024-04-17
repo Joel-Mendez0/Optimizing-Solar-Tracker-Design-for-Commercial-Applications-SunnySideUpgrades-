@@ -375,8 +375,8 @@ void handleTotalEnergy() {
     server.send(200, "text/plain", String(totalEnergy));
 }
 
-  float totalPower = 0;
-  float extraPower = 0;
+  float totalEnergy = 0;
+  float panelPower = 0;
 
 void setup() {
   pinMode(34, ANALOG);
@@ -445,19 +445,16 @@ void setup() {
       // server.on("/extra_energy", handleExtraEnergy);
       // Adjusted function to send the extra energy as a percentage
       server.on("/extra_energy", HTTP_GET, []() {
-      // Assuming the analog read gives us a voltage that we convert to energy
-        int rawValue = analogRead(34);  // Read the current voltage from solar panel
-        float voltage = (rawValue / 4095.0) * 3.3;  // Convert raw reading to voltage assuming a 3.3V scale
-        float panelVoltage = (voltage / 3.3) * 12.0; // convert BACK
-        float panelPower = (panelVoltage * panelVoltage / 2200.0) * 1000; // This function should convert voltage to power
-        extraPower = panelPower * 0.33;
-        Serial.println("This is what we're sending: " + String(extraPower));
-      server.send(200, "text/plain", String(extraPower, 2));  // Send power
-    });
+        int rawValue = analogRead(34);  // Read the current voltage from the solar panel
+        float panelVoltage = (rawValue / 4095.0) * 12.0;  // Convert raw reading directly to panel voltage
+        float panelPower = panelVoltage * panelVoltage / 1.2; // live power reading using V^2/R
+        server.send(200, "text/plain", String(panelPower, 2));  // Send live power reading as text
+      });
 
       server.on("/total_energy", HTTP_GET, []() {
-        totalPower = totalPower + extraPower;
-        server.send(200, "text/plain", String(totalPower, 2)); // Send total energy as a percentage in plain text
+        float energyIncrement = panelPower * (10.0 / 3600.0);  // Convert power (W) to energy (Wh) for 10 seconds
+        totalEnergy += energyIncrement;  // Accumulate the total energy in Wh
+        server.send(200, "text/plain", String(totalEnergy, 2));  // Send total energy in Wh as plain text
       });
 
       server.on("/battery", HTTP_GET, []() {
@@ -467,6 +464,7 @@ void setup() {
     
         server.send(200, "text/plain", String(percent)); // Send updated percentage
       });
+    
       server.on("/ip", HTTP_GET, []() {
         server.send(200, "text/plain", WiFi.localIP().toString());
         Serial.println("This is getting sent to the webapp:" + WiFi.localIP());
@@ -474,7 +472,8 @@ void setup() {
 
       server.onNotFound([]() {
       server.send(404, "text/plain", "404: Not found");
-    });
+      });
+    
       server.begin();
       Serial.println(F("Server started"));
 

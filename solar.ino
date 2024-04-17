@@ -55,7 +55,7 @@ bool is_header = false;
 
 float getBatteryPercentage(float voltage) {
   const float lowest = 2.183;
-  const float highest = 3.3;
+  const float highest = 3.2;
 
   float percent = 100*((voltage - lowest) / (highest - lowest));
 

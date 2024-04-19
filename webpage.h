@@ -6,7 +6,7 @@ const char PAGE_MAIN[] PROGMEM = R"=====(
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home Page</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500&display=swap');
+         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500&display=swap');
 
 * {
   box-sizing: border-box;
@@ -31,6 +31,8 @@ const char PAGE_MAIN[] PROGMEM = R"=====(
   --close-icon: #fdbc64;
   --draft-bg:  #fed8b3;
   --draft-icon:  #e9780e;
+  --weather-text-color: #fff;  /* White color for readability */
+
   
 }
 
@@ -42,6 +44,24 @@ body {
   justify-content: center;
   font-family: 'Poppins', sans-serif;
   background-color: #050e2d;
+}
+
+.weather-forecast-container {
+    padding: 15px;  /* Adds space inside the container */
+    margin: 20px 0; /* Adds space outside the container, between other elements */
+    margin-top: 0px;
+    text-align: left; /* Aligns text to the left */
+    background-color: var(--app-bg-dark);
+    color: var(--weather-text-color); /* Ensures text color is white, assuming this variable is defined */
+    border-radius: 10px; /* Optional: rounds the corners of the container */
+    display: flex; /* Uses Flexbox to layout child elements */
+    flex-direction: row; /* Aligns children vertically */
+    gap: 10px; /* Adds space between each child element */
+    font-size: 16px;
+}
+
+.forecast-icon {
+      text-align: center;
 }
 
 .app-container {
@@ -87,6 +107,7 @@ body {
   flex-direction: column;
   position: relative;
   transition: all .4s ease-in;
+  margin-right: 20px;
   
   &:before {
     content: '';
@@ -266,7 +287,7 @@ button { cursor: pointer; }
   &.two {
     .big {
       flex: 1;
-      max-width: 77.7%;
+      max-width: 75.3%;
       
       .chart-container {
         flex-direction: column;
@@ -274,7 +295,7 @@ button { cursor: pointer; }
     }
     
     .small {
-      width: 33.3%;
+      width: 35.7%;
       
       .chart-container {
         flex-direction: column;
@@ -300,6 +321,7 @@ button { cursor: pointer; }
   &.applicants {
     max-height: 336px;
     overflow-y: auto;
+    padding: 0px;
   }
 }
 
@@ -414,7 +436,7 @@ button { cursor: pointer; }
   display: inline-block;
   
   &.applications {
-    background-color: rgba(255,125,203,1);
+    background-color: rgba(66,253,66,1);
   }
   &.shortlisted {
     background-color: rgba(0,207,222,1);
@@ -441,7 +463,7 @@ button { cursor: pointer; }
   margin-right: 8px;
   
   &.applications {
-    background-color: rgba(255,125,203,1);
+    background-color: rgba(66,253,66,1);
   }
   
   &.shortlisted {
@@ -824,10 +846,14 @@ button { cursor: pointer; }
   .main-header-line h1 {
     font-size: 14px;
   }
+  
 }
+
+
     </style>
 </head>
 <body>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <div class="app-container">
   <div class="app-left">
     <button class="close-menu">
@@ -909,7 +935,7 @@ button { cursor: pointer; }
       <div class="chart-container-wrapper">
         <div class="chart-container">
           <div class="chart-info-wrapper">
-            <h2>Extra Energy Produced</h2>
+            <h2>Live Power Reading</h2>
             <span id="extraEnergy">Loading...</span>
           </div>
           <div class="chart-svg">
@@ -928,7 +954,7 @@ button { cursor: pointer; }
       <div class="chart-container-wrapper">
         <div class="chart-container">
           <div class="chart-info-wrapper">
-            <h2>Total Energy Produced</h2>
+            <h2>Total Energy Produced Today</h2>
             <span id=totalEnergy>Loading...</span>
           </div>
            <div class="chart-svg">
@@ -946,18 +972,25 @@ button { cursor: pointer; }
       </div>
     </div>
     <div class="chart-row two">
-      <div class="chart-container-wrapper big">
+  <div class="chart-container-wrapper big">
+      <div class="chart-container">
+    <div class="chart-container-header">
+      <h2>Live Video Stream</h2>
+      </div>
+      <div class="chart-container">
+      <!-- Video Stream Embedding -->
+    <div class="video-stream-container" style="margin-top: 20px;">
+      <img id="videoStream" src="" alt="Live Video Stream" style="width:100%; max-width:640px; border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
+    </div>
+        </div>
+  </div>
   <div class="chart-container">
     <div class="chart-container-header">
       <h2>Energy Production Chart</h2>
-      <span>Last 30 days</span>
+      <span>Past Year</span>
     </div>
     <div class="line-chart">
       <canvas id="chart"></canvas>
-    </div>
-    <!-- Video Stream Embedding -->
-    <div class="video-stream-container" style="margin-top: 20px;">
-      <img id="videoStream" src="" alt="Live Video Stream" style="width:100%; max-width:640px; border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
     </div>
     <div class="chart-data-details">
       <div class="chart-details-header"></div>
@@ -965,10 +998,11 @@ button { cursor: pointer; }
   </div>
 </div>
       <div class="chart-container-wrapper small">
+         <div class="weather-forecast-container"></div>
         <div class="chart-container">
           <div class="chart-container-header">
             <h2>Average Weather Data</h2>
-            <span href="#">This month</span>
+            <span href="#">This Week</span>
           </div>
           <div class="acquisitions-bar">
            <span class="bar-progress rejected" style="width:8%;"></span>
@@ -979,64 +1013,24 @@ button { cursor: pointer; }
           <div class="progress-bar-info">
             <span class="progress-color applications"></span>
             <span class="progress-type">Sunny</span>
-            <span class="progress-amount">64%</span>
+            <span class="progress-amount applications">64%</span>
           </div>
           <div class="progress-bar-info">
             <span class="progress-color shortlisted"></span>
             <span class="progress-type">Partly Cloudy</span>
-            <span class="progress-amount">18%</span>
+            <span class="progress-amount shortlisted">18%</span>
           </div>
           <div class="progress-bar-info">
             <span class="progress-color on-hold"></span>
             <span class="progress-type">Cloudy</span>
-            <span class="progress-amount">10%</span>
+            <span class="progress-amount on-hold">10%</span>
           </div>
           <div class="progress-bar-info">
             <span class="progress-color rejected"></span>
             <span class="progress-type">Rainy/Stormy</span>
-            <span class="progress-amount">8%</span>
+            <span class="progress-amount rejected">8%</span>
           </div>
         </div>
-	<div class="chart-container applicants">
-          <div class="weather-forecast-container"> </div>
-            <div class="chart-container-header">
-              <h2>Weather Forecast</h2>
-              <span>Today</span>
-            </div>
-          <div class="applicant-line">
-            <img src="https://media.discordapp.net/attachments/401578470242648075/1164365152657887272/IMG_4171.jpg?ex=65d69a8d&is=65c4258d&hm=2f2bd845ced0f8ac76ca0bb077d8aef62e2e739d8f93c80dc8f6494a8e9760bd&=&format=webp&width=708&height=673" alt="profile">
-            <div class="applicant-info">
-              <span>Sunny</span>
-              <p>Sunny for <strong>This Morning</strong></p>
-            </div>
-          </div>
-          <div class="applicant-line">
-            <img src="https://media.discordapp.net/attachments/401578470242648075/1164365152657887272/IMG_4171.jpg?ex=65d69a8d&is=65c4258d&hm=2f2bd845ced0f8ac76ca0bb077d8aef62e2e739d8f93c80dc8f6494a8e9760bd&=&format=webp&width=708&height=673" alt="profile">
-            <div class="applicant-info">
-              <span>Chance of Rain</span>
-              <p>Calculated for <strong>12pm - 4pm</strong></p>
-            </div>
-          </div>
-          <div class="applicant-line">
-            <img src="https://media.discordapp.net/attachments/401578470242648075/1164365152657887272/IMG_4171.jpg?ex=65d69a8d&is=65c4258d&hm=2f2bd845ced0f8ac76ca0bb077d8aef62e2e739d8f93c80dc8f6494a8e9760bd&=&format=webp&width=708&height=673" alt="profile">
-            <div class="applicant-info">
-              <span>Copious Amounts of Rain</span>
-              <p>Calculated for <strong>4pm-8pm</strong></p>
-            </div>
-          </div>
-          <div class="applicant-line">
-            <img src="https://media.discordapp.net/attachments/401578470242648075/1164365152657887272/IMG_4171.jpg?ex=65d69a8d&is=65c4258d&hm=2f2bd845ced0f8ac76ca0bb077d8aef62e2e739d8f93c80dc8f6494a8e9760bd&=&format=webp&width=708&height=673" alt="profile">
-            <div class="applicant-info">
-              <span>Nuclear Fallout</span>
-              <p>Calculated for <strong>8pm - The End of Time</strong></p>
-            </div>
-          </div>
-          <div class="applicant-line">
-            <img src="https://media.discordapp.net/attachments/401578470242648075/1164365152657887272/IMG_4171.jpg?ex=65d69a8d&is=65c4258d&hm=2f2bd845ced0f8ac76ca0bb077d8aef62e2e739d8f93c80dc8f6494a8e9760bd&=&format=webp&width=708&height=673">
-            <div class ="applicant-info">
-              <span>Sunny</span>
-              <p>Calculated for <strong>Tomorrow Morning</strong></p>
-            </div>
           </div>
         </div>
       </div>
@@ -1048,7 +1042,7 @@ button { cursor: pointer; }
     </button>
     <div class="profile-box">
       <div class="profile-photo-wrapper">
-        <img src="https://media.discordapp.net/attachments/401578470242648075/1164365152657887272/IMG_4171.jpg?ex=65d69a8d&is=65c4258d&hm=2f2bd845ced0f8ac76ca0bb077d8aef62e2e739d8f93c80dc8f6494a8e9760bd&=&format=webp&width=708&height=673" alt="profile">
+        <img src="https://i.imgur.com/6nWUy3z.jpeg" alt="profile">
       </div>
       <p class="profile-text">Kevin Orozco</p>
        <p class="profile-subtext">Full Stack Engineer</p>
@@ -1062,21 +1056,21 @@ button { cursor: pointer; }
         </span>
       </div>
       <div class="message-line">
-        <img src="https://media.discordapp.net/attachments/401578470242648075/1205171857263693824/Screenshot_20240208_102030.png?ex=65d766c1&is=65c4f1c1&hm=20024f419d1c2c3602a6d1e5bb9a025f544a97f34f12bbb67a579325f188c79e&=&format=webp&quality=lossless&width=675&height=673" alt="profile">
+        <img src="https://i.imgur.com/yB9dAdr.png" alt="profile">
         <div class="message-text-wrapper">
           <p class="message-text">Kevin Shaholli</p>
           <p class="message-subtext">Have you planned any deadline for this?</p>
         </div>
       </div>
       <div class="message-line">
-        <img src="https://media.discordapp.net/attachments/401578470242648075/1205171858182512681/Screenshot_20240208_102113.png?ex=65d766c2&is=65c4f1c2&hm=d29a2fd0e9666323d62f7891ec1d8bfc16f690abd04f2ccfb284a9f382107600&=&format=webp&quality=lossless&width=675&height=673" alt="profile">
+        <img src="https://i.imgur.com/ff83Fh3.png" alt="profile">
         <div class="message-text-wrapper">
           <p class="message-text">Matthew Del Cid</p>
           <p class="message-subtext">Can we schedule another meeting for next thursday?</p>
         </div>
       </div>
       <div class="message-line">
-        <img src="https://media.discordapp.net/attachments/401578470242648075/1205171857788112949/Screenshot_20240208_102049.png?ex=65d766c1&is=65c4f1c1&hm=28c586d7437154a7b8b19b78a74dfedfc5b7a4549b9be5be07db67343121696a&=&format=webp&quality=lossless&width=675&height=673" alt="profile">
+        <img src="https://i.imgur.com/o7C0IPm.png" alt="profile">
         <div class="message-text-wrapper">
           <p class="message-text">Joel Mendez</p>
           <p class="message-subtext">Epic.</p>
@@ -1153,116 +1147,22 @@ button { cursor: pointer; }
   </div>
 </div>
     <script>
-function fetchWeatherData() {
-  const apiKey = 'YOUR_API_KEY';
-  // Set your location latitude and longitude
-  const lat = 'YOUR_LATITUDE';
-  const lon = 'YOUR_LONGITUDE';
-  const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`;
-
-  fetch(url)
-    .then(response => response.json())
-    .then(data => {
-      displayWeatherData(data);
-    })
-    .catch(error => console.error('Error fetching weather data:', error));
-}
-
-function displayWeatherData(data) {
-  // Example: Update temperature and weather description
-  const temperature = Math.round(data.main.temp);
-  const weatherDescription = data.weather[0].description;
-  const weatherContainer = document.querySelector('.weather-data');
-  weatherContainer.innerHTML = `<p>Temperature: ${temperature}°C</p><p>${weatherDescription}</p>`;
-}
-
-// Call it once on page load or when needed
-fetchWeatherData();
-
-    function updateBatteryCharge() {
-  fetch('/battery')
-    .then(response => response.text())
-    .then(percentage => {
-            document.getElementById('batteryPercentage').innerText = percentage + '%';
-      // Update the circular chart to reflect new battery percentage
-      var circle = document.querySelector('.circular-chart.pink .circle');
-      var fullLength = 100; // Total length of the path
-      var filledLength = (fullLength * percentage) / 100;
-      circle.style.strokeDasharray = `${filledLength}, ${fullLength}`;
-      
-      var percentageText = document.querySelector('.circular-chart.pink .percentage');
-      percentageText.textContent = percentage + '%';
-    })
-    .catch(error => console.error('Error fetching battery data:', error));
-}
-
-// Update battery charge every 5 seconds
-setInterval(updateBatteryCharge, 5000);
-
-
-function updateExtraEnergy() {
-    fetch('/extra_energy')
-        .then(response => response.text())
-        .then(percentage => {
-            document.getElementById('extraEnergy').innerText = percentage + 'W';
-            // Update the circular chart to reflect new energy percentage
-            var circle = document.querySelector('.circular-chart.blue .circle');
-            var fullLength = 100; // Total length of the path
-            var filledLength = parseFloat(percentage + 33); // directly use returned percentage
-            circle.style.strokeDasharray = `${filledLength}, 100`;
-
-            var percentageText = document.querySelector('.circular-chart.blue .percentage');
-            percentageText.textContent = '33%';
-        })
-        .catch(error => console.error('Error fetching extra energy data:', error));
-}
-
-function updateTotalEnergy() {
-    fetch('/total_energy')
-        .then(response => response.text())
-        .then(percentage => {
-            document.getElementById('totalEnergy').innerText = percentage + 'W';
-            // Update the circular chart to reflect new energy percentage
-            var circle = document.querySelector('.circular-chart.orange .circle');
-            var fullLength = 100; // Total length of the path
-            var filledLength = parseFloat(33) * fullLength / 100;
-            circle.style.strokeDasharray = `${filledLength}, ${fullLength}`;
-
-            var percentageText = document.querySelector('.circular-chart.orange .percentage');
-            percentageText.textContent = 33 + '%';
-        })
-        .catch(error => console.error('Error fetching total energy data:', error));
-}
-
-
-// Call these functions to update the values on page load
-updateExtraEnergy();
-updateTotalEnergy();
-
-// Optionally, set intervals to regularly update these values
-setInterval(updateExtraEnergy, 5000); // Update every minute
-setInterval(updateTotalEnergy, 5000); // Update every minute
-
-// Call it once on page load
-updateBatteryCharge();
-
-        var chart    = document.getElementById('chart').getContext('2d'),
-    gradient = chart.createLinearGradient(0, 0, 0, 450);
+var chart = document.getElementById('chart').getContext('2d'),
+gradient = chart.createLinearGradient(0, 0, 0, 450);
 
 gradient.addColorStop(0, 'rgba(0, 199, 214, 0.32)');
 gradient.addColorStop(0.3, 'rgba(0, 199, 214, 0.1)');
 gradient.addColorStop(1, 'rgba(0, 199, 214, 0)');
 
-
 var data  = {
     labels: [ 'January', 'February', 'March', 'April', 'May', 'June', 'July','August','September','October', 'November','December' ],
     datasets: [{
-			label: 'Applications',
+			label: 'Energy Produced (Wh)',
 			backgroundColor: gradient,
 			pointBackgroundColor: '#00c7d6',
 			borderWidth: 1,
 			borderColor: '#0e1a2f',
-			data: [60, 45, 80, 30, 35, 55,25,80,40,50,80,50]
+			data: [40, 45, 50, 30, 60, 80,90,80,40,80,80,50]
     }]
 };
 
@@ -1333,6 +1233,63 @@ document.querySelector('.close-menu').addEventListener('click', function () {
     document.querySelector('.app-left').classList.remove('show');
 });
 
+function updateBatteryCharge() {
+  fetch('/battery')
+    .then(response => response.text())
+    .then(percentage => {
+            document.getElementById('batteryPercentage').innerText = percentage + '%';
+      // Update the circular chart to reflect new battery percentage
+      var circle = document.querySelector('.circular-chart.pink .circle');
+      var fullLength = 100; // Total length of the path
+      var filledLength = (fullLength * percentage) / 100;
+      circle.style.strokeDasharray = `${filledLength}, ${fullLength}`;
+
+      var percentageText = document.querySelector('.circular-chart.pink .percentage');
+      percentageText.textContent = percentage + '%';
+    })
+    .catch(error => console.error('Error fetching battery data:', error));
+}
+
+// Call it once on page load
+updateBatteryCharge();
+
+// Update battery charge every 5 seconds
+setInterval(updateBatteryCharge, 5000);
+
+function updateEnergyData() {
+    fetch('/energy_data')
+        .then(response => response.json())
+        .then(data => {
+            const { panelPower, totalEnergy } = data;
+
+            // Update extra energy display
+            const extraEnergyElement = document.getElementById('extraEnergy');
+            extraEnergyElement.innerText = `${panelPower.toFixed(2)}W`;
+
+            // Update total energy display
+            const totalEnergyElement = document.getElementById('totalEnergy');
+            totalEnergyElement.innerText = `${totalEnergy.toFixed(2)}Wh`;
+
+            // Update circular charts
+            updateCircularChart('.circular-chart.blue', panelPower, 120);
+            updateCircularChart('.circular-chart.orange', totalEnergy, 832);
+        })
+        .catch(error => {
+            console.error('Error fetching energy data:', error);
+        });
+
+    function updateCircularChart(chartClass, value, expectedValue) {
+        const circle = document.querySelector(`${chartClass} .circle`);
+        const fullLength = 100;
+        const percentage = parseFloat(value) / expectedValue * 100;
+        const filledLength = parseFloat(value) / expectedValue * fullLength;
+        circle.style.strokeDasharray = `${filledLength}, ${fullLength}`;
+
+        const percentageText = document.querySelector(`${chartClass} .percentage`);
+        percentageText.textContent = `${percentage.toFixed(2)}%`;
+    }
+}
+
 function fetchWeatherData() {
     const apiKey = 'f42f91a675d0f0955304d5503a1bfb12'; // Use your OpenWeatherMap API key
     const cityId = '5128581'; // Example: New York City ID
@@ -1346,6 +1303,11 @@ function fetchWeatherData() {
         .catch(error => console.error('Error fetching weather data:', error));
 }
 
+function formatDate(d) {
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    return `${days[d.getDay()]} ${d.getDate()}`;
+}
+
 function updateWeatherForecast(data) {
     // Assuming you have a container for the forecast in your HTML
     const forecastContainer = document.querySelector('.weather-forecast-container');
@@ -1356,18 +1318,19 @@ function updateWeatherForecast(data) {
     data.list.forEach((forecast, index) => {
         if (index % 8 === 0) { // Assuming you want to display the forecast every 3 hours, adjust as necessary
             const dateTime = new Date(forecast.dt * 1000); // Convert Unix timestamp to JS Date object
-            const temp = forecast.main.temp;
+            const formattedDate = formatDate(dateTime);
+            const temp = ((forecast.main.temp - 273.15) * 9/5 + 32).toFixed(1);
             const description = forecast.weather[0].description;
             const icon = forecast.weather[0].icon;
 
             // Create the HTML for the forecast item
             const forecastHTML = `
                 <div class="forecast-item">
-                    <div class="forecast-date">${dateTime.toDateString()}</div>
-                    <div class="forecast-temp">${temp}°C</div>
-                    <div class="forecast-desc">${description}</div>
+                    <div class="forecast-date">${formattedDate}</div>
                     <div class="forecast-icon">
                         <img src="http://openweathermap.org/img/w/${icon}.png" alt="${description}" />
+                    <div class="forecast-temp">${temp}°F</div>
+                    <div class="forecast-desc">${description}</div>
                     </div>
                 </div>
             `;
@@ -1395,15 +1358,66 @@ function updateVideoStream() {
     .catch(error => console.error('Error fetching IP:', error));
 }
 
-// Call this function when the page loads
+function updateAverageWeatherData() {
+    const apiKey = 'f42f91a675d0f0955304d5503a1bfb12';  // Replace with your actual API key
+    const cityId = '5128581';  // Replace with your actual city ID
+    const url = `https://api.openweathermap.org/data/2.5/forecast?id=${cityId}&appid=${apiKey}&units=metric`;
+
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            const weatherCounts = {
+                sunny: 0,
+                partlyCloudy: 0,
+                cloudy: 0,
+                rainy: 0
+            };
+
+            data.list.forEach(forecast => {
+                const main = forecast.weather[0].main;
+                if (main.includes('Clear')) {
+                    weatherCounts.sunny++;
+                } else if (main.includes('Clouds')) {
+                    if (forecast.weather[0].description.includes('few clouds')) {
+                        weatherCounts.partlyCloudy++;
+                    } else {
+                        weatherCounts.cloudy++;
+                    }
+                } else if (main.includes('Rain') || main.includes('Storm')) {
+                    weatherCounts.rainy++;
+                }
+            });
+
+            const total = data.list.length;
+            const percentages = {
+                sunny: (weatherCounts.sunny / total * 100).toFixed(2),
+                partlyCloudy: (weatherCounts.partlyCloudy / total * 100).toFixed(2),
+                cloudy: (weatherCounts.cloudy / total * 100).toFixed(2),
+                rainy: (weatherCounts.rainy / total * 100).toFixed(2)
+            };
+
+            document.querySelector('.bar-progress.applications').style.width = `${percentages.sunny}%`;
+            document.querySelector('.bar-progress.shortlisted').style.width = `${percentages.partlyCloudy}%`;
+            document.querySelector('.bar-progress.on-hold').style.width = `${percentages.cloudy}%`;
+            document.querySelector('.bar-progress.rejected').style.width = `${percentages.rainy}%`;
+
+            document.querySelector('.progress-amount.applications').innerText = `${percentages.sunny}%`;
+            document.querySelector('.progress-amount.shortlisted').innerText = `${percentages.partlyCloudy}%`;
+            document.querySelector('.progress-amount.on-hold').innerText = `${percentages.cloudy}%`;
+            document.querySelector('.progress-amount.rejected').innerText = `${percentages.rainy}%`;
+        })
+        .catch(error => console.error('Error fetching weather data:', error));
+}
+
+// Call this function on page load and at intervals you deem necessary
 document.addEventListener('DOMContentLoaded', function() {
+  updateAverageWeatherData();
+  setInterval(updateAverageWeatherData, 3600000); // Update hourly
   updateVideoStream();
-  updateExtraEnergy();
-  updateTotalEnergy();
-  setInterval(updateExtraEnergy, 5000); // Update every minute
-  setInterval(updateTotalEnergy, 5000); // Update every minute
+  updateEnergyData();
+  setInterval(updateEnergyData, 5000); // update every 5 seconds
 });
-    </script>
+</script>
 </body>
 </html>
 )=====";

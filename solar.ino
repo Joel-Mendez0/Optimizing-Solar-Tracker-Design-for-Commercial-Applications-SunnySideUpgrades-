@@ -19,7 +19,8 @@ int servo_x = 180;
 const int CS = 5;
 
 // might need to change this value
-const int analogPin = 34; // The GPIO pin where the voltage is read
+const int batteryPin = 36; // The GPIO pin where the panel voltage is read
+const int panelPin = 39; // The GPIO pin where the battery voltage is read
 
 // Structure to hold the timestamp and voltage reading
 struct VoltageReading {
@@ -28,8 +29,8 @@ struct VoltageReading {
 } latestReading;
 
 // WiFi Settings for WiFi Mode
-const char* wifi_ssid = "Shahomie's Spot";
-const char* wifi_password = "Kevo_360_Hot Spot";
+const char* wifi_ssid = "iPhone";
+const char* wifi_password = "123456789";
 
 // Access Point Settings for AP Mode
 const char* ap_ssid = "SunnySideUpgrades_ESP32";
@@ -67,14 +68,17 @@ float getBatteryPercentage(float voltage) {
   }
   return percent;
 }
+
 float voltage = 10.5;
 float percent = getBatteryPercentage(voltage);
 
 void handleRoot(){
   server.send_P(200,"text/html",PAGE_MAIN);
 }
+
 int servoX = 135; // Initial middle position for X
 int servoY = 135; // Initial middle position for Y
+
 void updateServoAngles(int x, int y) {
     // 90 and 180
 
@@ -302,6 +306,7 @@ void handleNotFound(){
   message += "\n";
   server.send(200, "text/plain", message);
 }
+
 void handleLoginRoute() {
     if (server.method() == HTTP_GET) {
         displayLoginPage();
@@ -309,9 +314,13 @@ void handleLoginRoute() {
         handleLogin();
     }
 }
-void displayLoginPage() {
+
+//successful login
+void displayLoginPage() { 
     server.send_P(200, "text/html", LOGIN_PAGE);
 }
+
+// check login
 void handleLogin() {
     Serial.println("Handle Called");
     if (server.hasArg("username") && server.hasArg("password")) {
@@ -328,7 +337,7 @@ void handleLogin() {
 
 // Function to read the voltage from the solar panel
 float readVoltage() {
-    int rawPanelValue = analogRead(analogPin); // Read the raw analog value
+    int rawPanelValue = analogRead(panelPin); // Read the raw analog value
     float voltage = (rawPanelValue / 4095.0) * 3.3; // Convert the analog read value to voltage (0-3.3V)
     float panelVoltage = (voltage / 3.3) * 12.0; // Convert to panel voltage (0-12V)
     Serial.println("Panel Voltage: " + String(panelVoltage));
@@ -340,47 +349,12 @@ void storeReading(float voltage) {
     latestReading = {millis(), voltage};
 }
 
-float calculateExtraEnergy() {
-    // Simulated or actual method to calculate extra energy
-    float standardPanelEnergy = 1200.0; // This could be a standard or expected energy value for comparison
-    float actualPanelEnergy = calculateTotalEnergy(); // Actual energy produced
-
-    if (standardPanelEnergy == 0) {
-        return 0; // Avoid division by zero
-    }
-
-    float extraEnergy = actualPanelEnergy - standardPanelEnergy;
-    if (extraEnergy < 0) {
-        extraEnergy = 0; // Only consider positive extra energy
-    }
-
-    // Convert extra energy to a percentage of the total energy
-    float extraEnergyPercentage = (extraEnergy / standardPanelEnergy) * 100;
-    return extraEnergyPercentage;
-}
-
-
-float calculateTotalEnergy() {
-    float averageCurrent = 10.0;
-    return latestReading.voltage * averageCurrent / 1000.0;
-}
-
-void handleExtraEnergy() {
-    float extraEnergy = calculateExtraEnergy();
-    server.send(200, "text/plain", String(extraEnergy));
-}
-
-void handleTotalEnergy() {
-    float totalEnergy = calculateTotalEnergy();
-    server.send(200, "text/plain", String(totalEnergy));
-}
-
-  float totalEnergy = 0;
-  float panelPower = 0;
+float totalEnergy = 0;
+float panelPower = 0;
 
 void setup() {
-  pinMode(34, ANALOG);
-  pinMode(35, ANALOG);
+  pinMode(batteryPin, ANALOG);
+  pinMode(panelPin, ANALOG);
   analogReadResolution(12);
   Serial.begin(115200);
   WiFi.begin(wifi_ssid, wifi_password);
@@ -434,48 +408,65 @@ void setup() {
   myCAM.clear_fifo_flag();
 
 
+  // Start the server
+  server.on("/home", handleRoot);
+  server.on("/login", handleLoginRoute);
+  server.on("/capture", HTTP_GET, serverCapture);
+  server.on("/stream", HTTP_GET, serverStream);
+  server.on("/update_coordinates", HTTP_POST, handleUpdateCoordinates);
+  server.onNotFound(handleNotFound);
+        
+  
 
-      // Start the server
-      server.on("/home",handleRoot);
-      server.on("/login", handleLoginRoute);
-      server.on("/capture", HTTP_GET, serverCapture);
-      server.on("/stream", HTTP_GET, serverStream);
-      server.on("/update_coordinates", HTTP_POST, handleUpdateCoordinates);
-      server.onNotFound(handleNotFound);
-      // server.on("/extra_energy", handleExtraEnergy);
-      // Adjusted function to send the extra energy as a percentage
-      server.on("/extra_energy", HTTP_GET, []() {
-        int rawValue = analogRead(34);  // Read the current voltage from the solar panel
-        float panelVoltage = (rawValue / 4095.0) * 12.0;  // Convert raw reading directly to panel voltage
-        float panelPower = panelVoltage * panelVoltage / 1.2; // live power reading using V^2/R
-        server.send(200, "text/plain", String(panelPower, 2));  // Send live power reading as text
-      });
+  // server.on("/extra_energy", HTTP_GET, []() {
+  //   int rawValue = analogRead(panelPin);  // Read the current voltage from the solar panel
+  //   float panelVoltage = (rawValue / 4095.0) * 12.0;  // Convert raw reading directly to panel voltage
+  //   float panelPower = panelVoltage * panelVoltage / 1.2; // live power reading using V^2/R
+  //   Serial.println("Current power: " + String(panelPower));
+  //   server.send(200, "text/plain", String(panelPower, 2));  // Send live power reading as text
+  // });
 
-      server.on("/total_energy", HTTP_GET, []() {
-        float energyIncrement = panelPower * (10.0 / 3600.0);  // Convert power (W) to energy (Wh) for 10 seconds
-        totalEnergy += energyIncrement;  // Accumulate the total energy in Wh
-        server.send(200, "text/plain", String(totalEnergy, 2));  // Send total energy in Wh as plain text
-      });
+  // server.on("/total_energy", HTTP_GET, []() {
+  //   float energyIncrement = panelPower * (10.0 / 3600.0);  // Convert power (W) to energy (Wh) for 10 seconds
+  //   totalEnergy += energyIncrement;  // Accumulate the total energy in Wh
+  //   Serial.println("Current Energy: " + String(totalEnergy));
+  //   server.send(200, "text/plain", String(totalEnergy, 2));  // Send total energy in Wh as plain text
+  // });
 
-      server.on("/battery", HTTP_GET, []() {
-        int rawValue = analogRead(35); // Read the current voltage
-        float voltage = rawValue / 4095.0 * 3.3; // Convert raw reading to voltage
-        float percent = getBatteryPercentage(voltage); // Calculate current battery percentage
-    
-        server.send(200, "text/plain", String(percent)); // Send updated percentage
-      });
-    
-      server.on("/ip", HTTP_GET, []() {
-        server.send(200, "text/plain", WiFi.localIP().toString());
-        Serial.println("This is getting sent to the webapp:" + WiFi.localIP());
-      });
+  server.on("/energy_data", HTTP_GET, [](){
+    int rawValue = analogRead(panelPin);  // Read the current voltage from the solar panel
+    float panelVoltage = (rawValue / 4095.0) * 12.0; // Convert raw reading to voltage
+    float panelPower = panelVoltage * panelVoltage / 1.2; // Calculate power using V^2/R
 
-      server.onNotFound([]() {
-      server.send(404, "text/plain", "404: Not found");
-      });
-    
-      server.begin();
-      Serial.println(F("Server started"));
+    float energyIncrement = panelPower * (10.0 / 3600.0); // Convert power to energy (Wh) for 10 seconds
+    totalEnergy += energyIncrement; // Accumulate total energy in Wh
+
+    // Manually create JSON string
+    char response[200];
+    snprintf(response, sizeof(response), "{\"panelPower\": %.2f, \"totalEnergy\": %.2f}", panelPower, totalEnergy);
+
+    server.send(200, "application/json", response);  // Send the JSON response
+  });
+
+  server.on("/battery", HTTP_GET, []() {
+    int rawValue = analogRead(batteryPin); // Read the current voltage
+    float voltage = rawValue / 4095.0 * 3.3; // Convert raw reading to voltage
+    float percent = getBatteryPercentage(voltage); // Calculate current battery percentage
+    Serial.println("Battery Percentage: " + String(percent));
+    server.send(200, "text/plain", String(percent)); // Send updated percentage
+  });
+
+  server.on("/ip", HTTP_GET, []() {
+    server.send(200, "text/plain", WiFi.localIP().toString());
+    Serial.println("This is getting sent to the webapp:" + WiFi.localIP());
+  });
+
+  server.onNotFound([]() {
+  server.send(404, "text/plain", "404: Not found");
+  });
+
+  server.begin();
+  Serial.println(F("Server started"));
 
   SolarServo1.attach(servoPin1);
   SolarServo1.write(135);
@@ -495,53 +486,52 @@ void loop() {
     server.handleClient();
 
     //Serial.println(WiFi.softAPIP());
-
     //Serial.println(WiFi.localIP());
     
     if (Serial.available() > 0) {
-          String command = Serial.readStringUntil('\n');
-          command.trim();
+      String command = Serial.readStringUntil('\n');
+      command.trim();
 
-          if (command.startsWith("X")) {
-              int angle = command.substring(1).toInt();
-              if (angle >= 0 && angle <= 180) {
-                  servo_x = angle;
-                  SolarServo2.write(servo_x);
-                  Serial.print("Servo X set to: ");
-                  Serial.println(servo_x);
-              } else {
-                  Serial.println("Invalid angle for Servo X");
-              }
-          }
-          else if (command.equals("R")){
-            servo_x = 135;
-            servo_y = 135;
-            SolarServo2.write(servo_x);
-            SolarServo1.write(servo_y);
-            Serial.print("Adjusted Servo X to: ");
-            Serial.println(servoX);
-            Serial.print("Adjusted Servo Y to: ");
-            Serial.println(servoY);
-
-          }
-          else if (command.startsWith("Y")) {
-              int angle = command.substring(1).toInt();
-              if (angle >= 90 && angle <= 180) {
-                  servo_y = angle;
-                  SolarServo1.write(servo_y);
-                  Serial.print("Servo Y set to: ");
-                  Serial.println(servo_y);
-              } else {
-                  Serial.println("Invalid angle for Servo Y");
-              }
+      if (command.startsWith("X")) {
+          int angle = command.substring(1).toInt();
+          if (angle >= 0 && angle <= 180) {
+              servo_x = angle;
+              SolarServo2.write(servo_x);
+              Serial.print("Servo X set to: ");
+              Serial.println(servo_x);
           } else {
-              Serial.println("Invalid command");
+              Serial.println("Invalid angle for Servo X");
           }
       }
- /*
+      else if (command.equals("R")){
+        servo_x = 135;
+        servo_y = 135;
+        SolarServo2.write(servo_x);
+        SolarServo1.write(servo_y);
+        Serial.print("Adjusted Servo X to: ");
+        Serial.println(servoX);
+        Serial.print("Adjusted Servo Y to: ");
+        Serial.println(servoY);
+
+      }
+      else if (command.startsWith("Y")) {
+          int angle = command.substring(1).toInt();
+          if (angle >= 90 && angle <= 180) {
+              servo_y = angle;
+              SolarServo1.write(servo_y);
+              Serial.print("Servo Y set to: ");
+              Serial.println(servo_y);
+          } else {
+              Serial.println("Invalid angle for Servo Y");
+          }
+      } else {
+          Serial.println("Invalid command");
+      }
+    }
+  
     // Always collect readings, independent of the timing for output
     if (readingsCount < readingsToCollect) {
-      int rawValue = analogRead(35);
+      int rawValue = analogRead(batteryPin);
       readingsSum += rawValue; // Add the raw value to the sum
       readingsCount++; // Increment the count of readings
     }
@@ -565,8 +555,7 @@ void loop() {
       previousMillis = currentMillis; // Update the time we last output the average
 
     }
-    */
-    
+    /*
     static unsigned long lastReadTime = 0; // Last time the voltage was read
       const long interval = 5000; // Interval between reads, 1 hour in milliseconds
 
@@ -576,9 +565,9 @@ void loop() {
           storeReading(voltage); // Store the reading
           lastReadTime = currentTime; // Update the last read time
         
-          Serial.print("Latest Voltage Reading: ");
-          Serial.println(latestReading.voltage);
+          // Serial.print("Latest Voltage Reading: ");
+          // Serial.println(latestReading.voltage);
         }
-
+    */
     }
                    

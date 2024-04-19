@@ -1260,14 +1260,14 @@ function updateEnergyData() {
     fetch('/energy_data')
         .then(response => response.json())
         .then(data => {
-            const { panelPower, totalEnergy } = data;
+            var { panelPower, totalEnergy } = data;
 
             // Update extra energy display
-            const extraEnergyElement = document.getElementById('extraEnergy');
+            var extraEnergyElement = document.getElementById('extraEnergy');
             extraEnergyElement.innerText = `${panelPower.toFixed(2)}W`;
 
             // Update total energy display
-            const totalEnergyElement = document.getElementById('totalEnergy');
+            var totalEnergyElement = document.getElementById('totalEnergy');
             totalEnergyElement.innerText = `${totalEnergy.toFixed(2)}Wh`;
 
             // Update circular charts
@@ -1279,13 +1279,13 @@ function updateEnergyData() {
         });
 
     function updateCircularChart(chartClass, value, expectedValue) {
-        const circle = document.querySelector(`${chartClass} .circle`);
-        const fullLength = 100;
-        const percentage = parseFloat(value) / expectedValue * 100;
-        const filledLength = parseFloat(value) / expectedValue * fullLength;
+        var circle = document.querySelector(`${chartClass} .circle`);
+        var fullLength = 100;
+        var percentage = parseFloat(value) / expectedValue * 100;
+        var filledLength = parseFloat(value) / expectedValue * fullLength;
         circle.style.strokeDasharray = `${filledLength}, ${fullLength}`;
 
-        const percentageText = document.querySelector(`${chartClass} .percentage`);
+        var percentageText = document.querySelector(`${chartClass} .percentage`);
         percentageText.textContent = `${percentage.toFixed(2)}%`;
     }
 }

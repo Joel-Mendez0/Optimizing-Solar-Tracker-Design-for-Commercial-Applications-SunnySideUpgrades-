@@ -1254,7 +1254,7 @@ function updateBatteryCharge() {
 updateBatteryCharge();
 
 // Update battery charge every 5 seconds
-setInterval(updateBatteryCharge, 5000);
+setInterval(updateBatteryCharge, 500);
 
 function updateEnergyData() {
     fetch('/energy_data')
@@ -1414,8 +1414,9 @@ document.addEventListener('DOMContentLoaded', function() {
   updateAverageWeatherData();
   setInterval(updateAverageWeatherData, 3600000); // Update hourly
   updateVideoStream();
+  //setInterval(updateVideoStream, 500); // update every .5 seconds
   updateEnergyData();
-  setInterval(updateEnergyData, 5000); // update every 5 seconds
+  setInterval(updateEnergyData, 500); // update every .5 seconds
 });
 </script>
 </body>

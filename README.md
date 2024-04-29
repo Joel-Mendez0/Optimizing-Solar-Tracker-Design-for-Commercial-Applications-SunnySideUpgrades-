@@ -1,4 +1,4 @@
-# EECE 410 Capstone Design I
+# Capstone Final Project
 ## Optimizing Solar Tracker Design for Commercial Applications
 
 https://github.com/Joel-Mendez0/SunnySideUpgrades/assets/113056408/0a00a07c-9d0d-4bea-a53a-b840ea959109

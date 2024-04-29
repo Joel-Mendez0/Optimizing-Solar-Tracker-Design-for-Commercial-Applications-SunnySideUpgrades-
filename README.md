@@ -13,7 +13,7 @@ https://github.com/Joel-Mendez0/SunnySideUpgrades/assets/113056408/3dc2a47d-8116
 
 
 
-# Commercial Solar Tracking - Critical Design Report
+# Commercial Solar Tracking
 
 ## EECE 411 Capstone Design II
 ### Manhattan College, Electrical & Computer Engineering

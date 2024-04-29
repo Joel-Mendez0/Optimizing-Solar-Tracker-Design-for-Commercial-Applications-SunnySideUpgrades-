@@ -2,10 +2,15 @@
 ## Optimizing Solar Tracker Design for Commercial Applications
 
 https://github.com/Joel-Mendez0/SunnySideUpgrades/assets/113056408/0a00a07c-9d0d-4bea-a53a-b840ea959109
+
 https://github.com/Joel-Mendez0/SunnySideUpgrades/assets/113056408/70076ef7-138c-4648-81d9-b663b06ff56b
+
 https://github.com/Joel-Mendez0/SunnySideUpgrades/assets/113056408/11da9491-a63d-4943-8d3b-7a6165acc433
+
 https://github.com/Joel-Mendez0/SunnySideUpgrades/assets/113056408/452aa02b-4df4-4c98-ad79-40416ea26a1e
+
 https://github.com/Joel-Mendez0/SunnySideUpgrades/assets/113056408/3dc2a47d-8116-4849-b216-8741e3ced0c9
+
 
 
 # Commercial Solar Tracking - Critical Design Report
